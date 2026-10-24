@@ -30,6 +30,18 @@ jobs:
       - run: test -z "$(gofmt -l .)"
       - run: go vet ./...
       - run: go test -race ./...
+  # Static analysis with golangci-lint (configuration in .golangci.yml).
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.15
+
   # Scans dependencies and the standard library for known vulnerabilities.
   vulncheck:
     runs-on: ubuntu-latest

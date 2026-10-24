@@ -14,6 +14,14 @@ import (
 // t0 is the fixed base time of the tests: a Tuesday at noon, UTC. Tests never read the real clock.
 var t0 = time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)
 
+// writeStats puts content into dir/stats.json.
+func writeStats(t *testing.T, dir, content string) {
+	t.Helper()
+	if err := os.WriteFile(filepath.Join(dir, "stats.json"), []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // withEnv wraps getenv so that key k returns v.
 func withEnv(g func(string) string, k, v string) func(string) string {
 	return func(key string) string {
@@ -72,7 +80,7 @@ func TestListCommand(t *testing.T) {
 // TestListCorruptWarns checks that list warns once about a corrupt stats file.
 func TestListCorruptWarns(t *testing.T) {
 	d, _, errb := testDeps(t)
-	os.WriteFile(filepath.Join(d.Getenv("TERM_ACHIEVEMENTS_HOME"), "stats.json"), []byte("nope"), 0o600)
+	writeStats(t, d.Getenv("TERM_ACHIEVEMENTS_HOME"), "nope")
 	if Run([]string{"list"}, d) != 0 || !strings.HasPrefix(errb.String(), "term-achievements: stats file was unreadable; moved it to ") {
 		t.Fatal(errb)
 	}
@@ -86,7 +94,7 @@ func TestListCorruptWarns(t *testing.T) {
 func TestListNewerAndBusy(t *testing.T) {
 	d, _, errb := testDeps(t)
 	dir := d.Getenv("TERM_ACHIEVEMENTS_HOME")
-	os.WriteFile(filepath.Join(dir, "stats.json"), []byte(`{"version":2}`), 0o600)
+	writeStats(t, dir, `{"version":2}`)
 	if Run([]string{"list"}, d) != 1 || errb.String() != "term-achievements: stats were written by a newer term-achievements; please upgrade\n" {
 		t.Fatal(errb)
 	}

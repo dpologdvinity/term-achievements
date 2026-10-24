@@ -91,9 +91,11 @@ func TestCwdType(t *testing.T) {
 	home := filepath.Join(root, "home")
 	tmp := filepath.Join(root, "tmp")
 	repo := filepath.Join(home, "src", "p")
-	os.MkdirAll(filepath.Join(repo, ".git"), 0o755)
-	os.MkdirAll(filepath.Join(repo, "deep"), 0o755)
-	os.MkdirAll(filepath.Join(tmp, "x"), 0o755)
+	for _, d := range []string{filepath.Join(repo, ".git"), filepath.Join(repo, "deep"), filepath.Join(tmp, "x")} {
+		if err := os.MkdirAll(d, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
 	cases := map[string]string{home: "home", tmp: "tmp", filepath.Join(tmp, "x"): "tmp", filepath.Join(repo, "deep"): "repo", filepath.Join(home, "src"): "other"}
 	if CwdType(root, "", nil) == "repo" { // a .git above the temp dir (e.g. /tmp/.git) makes "other" unreachable here
 		delete(cases, filepath.Join(home, "src"))
