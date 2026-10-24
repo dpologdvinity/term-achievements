@@ -10,12 +10,15 @@ import (
 	"github.com/dpologdvinity/term-achievements/internal/parse"
 )
 
+// t0 is the fixed base time of the tests: a Tuesday at noon, UTC. Tests never read the real clock.
 var t0 = time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)
 
+// ev builds an Event from a command line, exit status, duration, time and directory kind.
 func ev(line string, exit int, ms int64, now time.Time, cwd string) Event {
 	return Event{Cmd: parse.Parse(line, ""), Exit: exit, Ms: ms, Now: now, CwdType: cwd}
 }
 
+// TestCounters checks one counter per case against the SPEC §6.3 conditions, including the boundaries.
 func TestCounters(t *testing.T) {
 	sat8 := time.Date(2026, 3, 14, 8, 0, 0, 0, time.UTC) // Saturday 08:00
 	night := time.Date(2026, 3, 10, 3, 59, 0, 0, time.UTC)
@@ -69,6 +72,7 @@ func TestCounters(t *testing.T) {
 	}
 }
 
+// TestTrackedOnly checks that only tracked command names are stored, so a mistyped password never reaches the stats.
 func TestTrackedOnly(t *testing.T) {
 	s := NewStats()
 	Apply(s, ev("hunter2pass", 127, 1, t0, "other"))
@@ -81,6 +85,7 @@ func TestTrackedOnly(t *testing.T) {
 	}
 }
 
+// TestCwdType checks the home, tmp, repo and other classification on a fake directory tree.
 func TestCwdType(t *testing.T) {
 	root := t.TempDir()
 	home := filepath.Join(root, "home")

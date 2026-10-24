@@ -12,7 +12,8 @@ import (
 	"github.com/dpologdvinity/term-achievements/internal/parse"
 )
 
-// Stats is the content of stats.json.
+// Stats is the content of stats.json: everything term-achievements remembers.
+// It holds counters and aggregates only, never command lines (SPEC §5.4).
 type Stats struct {
 	Version    int                  `json:"version"`
 	Counters   map[string]int64     `json:"counters"`
@@ -57,6 +58,7 @@ func NewStats() *Stats {
 	}
 }
 
+// set builds a lookup set from a whitespace-separated list of names.
 func set(names string) map[string]bool {
 	m := map[string]bool{}
 	for _, n := range strings.Fields(names) {
@@ -78,8 +80,11 @@ mkdir rm mv cp touch chmod chown ln kill pkill killall ps df du tar zip unzip
 brew apt dnf pacman jq sqlite3 psql
 sl cowsay fortune cmatrix figlet lolcat toilet asciiquarium
 gti got gut gerp grpe claer clera mkae amke pyhton pytohn sudp suod vmi nvmi exti eixt`)
-	Typos      = set("gti got gut gerp grpe claer clera mkae amke pyhton pytohn sudp suod vmi nvmi exti eixt")
-	Toys       = set("sl cowsay fortune cmatrix figlet lolcat toilet asciiquarium")
+	// Typos are common mistypes of everyday commands.
+	Typos = set("gti got gut gerp grpe claer clera mkae amke pyhton pytohn sudp suod vmi nvmi exti eixt")
+	// Toys are fun programs such as cowsay and sl.
+	Toys = set("sl cowsay fortune cmatrix figlet lolcat toilet asciiquarium")
+	// BuildTools are build commands; a long successful run counts as a long build.
 	BuildTools = set("make cmake ninja cargo go npm pnpm yarn bun gradle gradlew mvn bazel dotnet swift xcodebuild tsc")
 )
 
@@ -88,14 +93,20 @@ var CounterKeys = strings.Fields(`commands failures not_found interrupts vim ema
 sudo sudo_retry man commits commits_before_9 force_push rebase bisect reflog stash night early weekend
 long_build marathon chmod777 kill9 clear cwd_tmp cwd_repo comebacks best_streak distinct`)
 
+// dayFmt is the layout of Stats.LastDay: a local calendar day.
 const dayFmt = "2006-01-02"
 
-// Apply adds one finished command to s.
+// Apply adds one finished command to s (SPEC §6.3). It never stores the command line:
+// only fixed counter keys and names from Tracked are written.
+//
+// The order matters: counters are bumped first (comebacks reads FailStreak before it
+// resets), then FailStreak, tracked names, the daily streak and the per-year aggregates.
 func Apply(s *Stats, e Event) {
 	c, n := e.Cmd, e.Cmd.Name
 	fail := e.Exit != 0 && e.Exit != 130 && e.Exit != 148
 	gitOK := func(sub string) bool { return n == "git" && c.Sub == sub && e.Exit == 0 }
 	h := e.Now.Hour()
+	// inc adds 1 to the counter key when cond holds.
 	inc := func(cond bool, key string) {
 		if cond {
 			s.Counters[key]++
@@ -136,6 +147,7 @@ func Apply(s *Stats, e Event) {
 	inc(e.CwdType == "repo", "cwd_repo")
 	inc(e.Exit == 0 && s.FailStreak >= 10, "comebacks")
 
+	// Consecutive failures: a failure adds 1, a success resets, Ctrl-C/Ctrl-Z leave it alone.
 	switch {
 	case fail:
 		s.FailStreak++
@@ -148,6 +160,8 @@ func Apply(s *Stats, e Event) {
 	}
 	s.Counters["distinct"] = int64(len(s.Cmds))
 
+	// Daily streak: +1 on the day after LastDay, back to 1 after a gap, ignored when the
+	// clock goes backwards. Only the first command of each day does any work here.
 	y := s.year(e.Now.Format("2006"))
 	if day := e.Now.Format(dayFmt); day >= s.LastDay { // an earlier day means the clock went back
 		if day != s.LastDay {
@@ -163,6 +177,7 @@ func Apply(s *Stats, e Event) {
 		}
 	}
 
+	// Per-year aggregates for `wrapped`.
 	y.Commands++
 	if fail {
 		y.Failures++
@@ -213,6 +228,8 @@ func rmRF(args []string) bool {
 	return r && f
 }
 
+// forceFlag reports whether git push arguments ask for a forced push: --force,
+// --force-with-lease[=...], or a short option group containing f (such as -uf).
 func forceFlag(args []string) bool {
 	return slices.ContainsFunc(args, func(a string) bool {
 		return a == "--force" || a == "--force-with-lease" || strings.HasPrefix(a, "--force-with-lease=") ||

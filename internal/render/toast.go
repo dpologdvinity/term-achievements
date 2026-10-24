@@ -8,6 +8,7 @@ import (
 	"github.com/dpologdvinity/term-achievements/internal/ach"
 )
 
+// maxToasts is the most lines a single record may print (SPEC §8.1).
 const maxToasts = 3
 
 // Toasts returns one line per new unlock (SPEC §8.1), each ending in a newline.

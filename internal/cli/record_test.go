@@ -14,10 +14,12 @@ import (
 	"github.com/dpologdvinity/term-achievements/internal/store"
 )
 
+// rec records a command with the given exit status through the real Run entry point.
 func rec(d Deps, exit string, line ...string) {
 	Run(append([]string{"record", "--exit", exit, "--ms", "5", "--"}, line...), d)
 }
 
+// TestRecordFirstToast checks that the first command prints the First Steps toast, and the second prints nothing.
 func TestRecordFirstToast(t *testing.T) {
 	d, out, errb := testDeps(t)
 	rec(d, "0", "ls", "-la")
@@ -31,6 +33,7 @@ func TestRecordFirstToast(t *testing.T) {
 	}
 }
 
+// TestRecordEscapedVim checks that the tenth vim run prints the Escaped Vim toast.
 func TestRecordEscapedVim(t *testing.T) {
 	d, out, _ := testDeps(t)
 	for i := 0; i < 10; i++ {
@@ -42,6 +45,7 @@ func TestRecordEscapedVim(t *testing.T) {
 	}
 }
 
+// TestRecordStartedAndPrev checks the --started duration and --prev sudo-retry inputs.
 func TestRecordStartedAndPrev(t *testing.T) {
 	d, _, _ := testDeps(t)
 	Run([]string{"record", "--exit", "0", "--started", strconv.FormatInt(t0.Unix()-700, 10), "--", "make"}, d)
@@ -52,6 +56,7 @@ func TestRecordStartedAndPrev(t *testing.T) {
 	}
 }
 
+// TestRecordBadInputSilent checks that bad or missing flags print nothing and exit 0.
 func TestRecordBadInputSilent(t *testing.T) {
 	d, out, errb := testDeps(t)
 	for _, args := range [][]string{{"record"}, {"record", "--exit", "x", "--", "ls"}, {"record", "--exit", "0", "--"}, {"record", "--bogus"}} {
@@ -61,6 +66,7 @@ func TestRecordBadInputSilent(t *testing.T) {
 	}
 }
 
+// TestRecordDisabled checks that TERM_ACHIEVEMENTS_DISABLE stops all recording and writing.
 func TestRecordDisabled(t *testing.T) {
 	d, out, _ := testDeps(t)
 	d.Getenv = withEnv(d.Getenv, "TERM_ACHIEVEMENTS_DISABLE", "1")
@@ -73,6 +79,7 @@ func TestRecordDisabled(t *testing.T) {
 	}
 }
 
+// TestRecordPrivacy checks that secrets in the command, previous command and directory name never reach any file.
 func TestRecordPrivacy(t *testing.T) {
 	d, _, _ := testDeps(t)
 	secretDir := filepath.Join(t.TempDir(), "secretproject")
@@ -102,6 +109,7 @@ func TestRecordPrivacy(t *testing.T) {
 	}
 }
 
+// TestRecordLockBusy checks that a held lock drops the event quickly and silently.
 func TestRecordLockBusy(t *testing.T) {
 	d, out, _ := testDeps(t)
 	un, _ := store.Lock(d.Getenv("TERM_ACHIEVEMENTS_HOME"), false, time.Second)
@@ -113,6 +121,7 @@ func TestRecordLockBusy(t *testing.T) {
 	}
 }
 
+// TestRecordCorruptSilent checks that record starts fresh on a corrupt file without printing a warning.
 func TestRecordCorruptSilent(t *testing.T) {
 	d, out, errb := testDeps(t)
 	dir := d.Getenv("TERM_ACHIEVEMENTS_HOME")
@@ -123,6 +132,7 @@ func TestRecordCorruptSilent(t *testing.T) {
 	}
 }
 
+// TestRecordBudget checks that the median record run stays under the 10 ms budget (skipped with -short).
 func TestRecordBudget(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
@@ -144,6 +154,7 @@ func TestRecordBudget(t *testing.T) {
 	}
 }
 
+// BenchmarkRecord measures one record call; run with `go test -bench Record -run ^$ ./internal/cli/`.
 func BenchmarkRecord(b *testing.B) {
 	home := b.TempDir()
 	d := Deps{

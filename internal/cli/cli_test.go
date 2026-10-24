@@ -11,8 +11,10 @@ import (
 	"time"
 )
 
+// t0 is the fixed base time of the tests: a Tuesday at noon, UTC. Tests never read the real clock.
 var t0 = time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)
 
+// withEnv wraps getenv so that key k returns v.
 func withEnv(g func(string) string, k, v string) func(string) string {
 	return func(key string) string {
 		if key == k {
@@ -22,6 +24,7 @@ func withEnv(g func(string) string, k, v string) func(string) string {
 	}
 }
 
+// testDeps returns Deps wired to temporary directories, a fixed clock and captured output.
 func testDeps(t *testing.T) (Deps, *bytes.Buffer, *bytes.Buffer) {
 	t.Helper()
 	env := map[string]string{"TERM_ACHIEVEMENTS_HOME": t.TempDir(), "HOME": t.TempDir()}
@@ -37,6 +40,7 @@ func testDeps(t *testing.T) (Deps, *bytes.Buffer, *bytes.Buffer) {
 	}, out, errb
 }
 
+// TestVersionHelpUnknown checks --version, help and the unknown-command error.
 func TestVersionHelpUnknown(t *testing.T) {
 	d, out, errb := testDeps(t)
 	d.Version = "0.1.0"
@@ -52,6 +56,7 @@ func TestVersionHelpUnknown(t *testing.T) {
 	}
 }
 
+// TestListCommand checks that list works on empty and non-empty stats, with no arguments or "list".
 func TestListCommand(t *testing.T) {
 	d, out, _ := testDeps(t)
 	if Run(nil, d) != 0 || !strings.HasPrefix(out.String(), "term-achievements · 0/40 unlocked\n\n") {
@@ -64,6 +69,7 @@ func TestListCommand(t *testing.T) {
 	}
 }
 
+// TestListCorruptWarns checks that list warns once about a corrupt stats file.
 func TestListCorruptWarns(t *testing.T) {
 	d, _, errb := testDeps(t)
 	os.WriteFile(filepath.Join(d.Getenv("TERM_ACHIEVEMENTS_HOME"), "stats.json"), []byte("nope"), 0o600)
@@ -76,6 +82,7 @@ func TestListCorruptWarns(t *testing.T) {
 	}
 }
 
+// TestListNewerAndBusy checks that list refuses stats written by a newer version.
 func TestListNewerAndBusy(t *testing.T) {
 	d, _, errb := testDeps(t)
 	dir := d.Getenv("TERM_ACHIEVEMENTS_HOME")
@@ -85,6 +92,7 @@ func TestListNewerAndBusy(t *testing.T) {
 	}
 }
 
+// TestWrappedCommand checks the wrapped command, its empty-year message and --year validation.
 func TestWrappedCommand(t *testing.T) {
 	d, out, errb := testDeps(t)
 	if Run([]string{"wrapped"}, d) != 0 || out.String() != "no commands recorded in 2026 yet\n" {
@@ -100,6 +108,7 @@ func TestWrappedCommand(t *testing.T) {
 	}
 }
 
+// TestInitCommand checks that init prints the embedded hook and rejects a missing shell.
 func TestInitCommand(t *testing.T) {
 	d, out, errb := testDeps(t)
 	want, _ := hooks.Script("bash")

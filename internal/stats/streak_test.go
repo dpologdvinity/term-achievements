@@ -5,8 +5,10 @@ import (
 	"time"
 )
 
+// day returns a UTC time on the given date at hour h.
 func day(y int, m time.Month, d, h int) time.Time { return time.Date(y, m, d, h, 0, 0, 0, time.UTC) }
 
+// TestStreak checks that the daily streak grows on consecutive days and restarts after a gap.
 func TestStreak(t *testing.T) {
 	s := NewStats()
 	for d := 1; d <= 3; d++ {
@@ -22,6 +24,7 @@ func TestStreak(t *testing.T) {
 	}
 }
 
+// TestStreakAcrossNewYear checks that a streak continues over New Year while each year keeps its own best streak.
 func TestStreakAcrossNewYear(t *testing.T) {
 	s := NewStats()
 	Apply(s, ev("ls", 0, 1, day(2025, 12, 31, 23), "other"))
@@ -31,6 +34,7 @@ func TestStreakAcrossNewYear(t *testing.T) {
 	}
 }
 
+// TestStreakClockBackwards checks that a clock that goes back past midnight neither resets nor double-counts the streak.
 func TestStreakClockBackwards(t *testing.T) {
 	s := NewStats()
 	Apply(s, ev("ls", 0, 1, day(2026, 3, 2, 0), "other"))
@@ -43,6 +47,7 @@ func TestStreakClockBackwards(t *testing.T) {
 	}
 }
 
+// TestComeback checks that a success after 10 or more failures counts once, and that Ctrl-C does not break the run.
 func TestComeback(t *testing.T) {
 	s := NewStats()
 	for i := 0; i < 10; i++ {

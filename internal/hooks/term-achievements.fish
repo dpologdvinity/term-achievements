@@ -1,7 +1,9 @@
 # term-achievements hook for fish: term-achievements init fish | source
+# Define the hook only once, even if this file is sourced again.
 if not functions -q __termach_postexec
     set -g __termach_prev ""
     function __termach_postexec --on-event fish_postexec
+        # Save $status and the duration (ms) before running any other command.
         set -l e $status
         set -l d $CMD_DURATION
         test -n "$argv[1]"; or return

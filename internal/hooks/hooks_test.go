@@ -9,6 +9,7 @@ import (
 	"testing"
 )
 
+// writeHook writes the hook for shell to a temporary file and returns its path.
 func writeHook(t *testing.T, shell string) string {
 	t.Helper()
 	s, ok := Script(shell)
@@ -33,6 +34,7 @@ func fakeBin(t *testing.T) (binDir, logPath string) {
 	return binDir, logPath
 }
 
+// TestScript checks that each shell has an embedded hook and unknown shells do not.
 func TestScript(t *testing.T) {
 	for _, sh := range []string{"zsh", "bash", "fish"} {
 		if s, ok := Script(sh); !ok || !strings.Contains(s, "term-achievements hook for "+sh) {
@@ -44,6 +46,7 @@ func TestScript(t *testing.T) {
 	}
 }
 
+// TestBashHookInteractive runs the bash hook in a real interactive bash and checks the recorded arguments.
 func TestBashHookInteractive(t *testing.T) {
 	hookFile := writeHook(t, "bash")
 	bin, log := fakeBin(t)
@@ -64,6 +67,7 @@ func TestBashHookInteractive(t *testing.T) {
 	}
 }
 
+// TestZshHook runs the zsh hook in real zsh: preserves $?, registers once, records once per command.
 func TestZshHook(t *testing.T) {
 	if _, err := exec.LookPath("zsh"); err != nil {
 		t.Skip("zsh not installed")
@@ -80,6 +84,7 @@ func TestZshHook(t *testing.T) {
 	}
 }
 
+// TestFishHook runs the fish hook in real fish: registers once and records the finished command.
 func TestFishHook(t *testing.T) {
 	if _, err := exec.LookPath("fish"); err != nil {
 		t.Skip("fish not installed")
@@ -93,6 +98,7 @@ func TestFishHook(t *testing.T) {
 	}
 }
 
+// TestHookMissingBinarySilent checks that a missing binary prints nothing and keeps the exit status.
 func TestHookMissingBinarySilent(t *testing.T) {
 	if _, err := exec.LookPath("zsh"); err != nil {
 		t.Skip("zsh not installed")

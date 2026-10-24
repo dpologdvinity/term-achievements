@@ -8,6 +8,7 @@ import (
 	"github.com/dpologdvinity/term-achievements/internal/stats"
 )
 
+// TestWrappedFull checks the whole recap card against an exact expected string.
 func TestWrappedFull(t *testing.T) {
 	s := stats.NewStats()
 	y := &stats.Year{Commands: 12345, Failures: 383, Commits: 412, ActiveDays: 201, BestStreak: 14, LongestMs: 23*60000 + 10500,
@@ -50,6 +51,7 @@ func TestWrappedFull(t *testing.T) {
 	}
 }
 
+// TestWrappedEmptyAndHelpers checks the empty-year case and the dur and commas helpers.
 func TestWrappedEmptyAndHelpers(t *testing.T) {
 	if _, ok := Wrapped(stats.NewStats(), 2026); ok {
 		t.Fatal("empty year")
@@ -64,6 +66,7 @@ func TestWrappedEmptyAndHelpers(t *testing.T) {
 	}
 }
 
+// TestWrappedSingular checks singular wording and the empty-state lines of the card.
 func TestWrappedSingular(t *testing.T) {
 	s := stats.NewStats()
 	s.Years["2026"] = &stats.Year{Commands: 1, ActiveDays: 1, BestStreak: 1, Commits: 1, Cwd: map[string]int64{"tmp": 1}, Cmds: map[string]int64{}}
@@ -81,6 +84,7 @@ func TestWrappedSingular(t *testing.T) {
 	}
 }
 
+// TestWrappedTruncatesLongLine checks that a line wider than the card is cut with an ellipsis.
 func TestWrappedTruncatesLongLine(t *testing.T) {
 	s := stats.NewStats()
 	s.Years["2026"] = &stats.Year{Commands: 1 << 62, ActiveDays: 1 << 62, Cwd: map[string]int64{}, Cmds: map[string]int64{}}

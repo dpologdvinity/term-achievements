@@ -20,15 +20,23 @@ type Cmd struct {
 }
 
 var (
-	envAssign   = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*=`)
-	separators  = []string{"|", "||", "&&", ";", "&", "|&"}
+	// envAssign matches a leading environment assignment such as FOO=1.
+	envAssign = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*=`)
+	// separators end the first command of a pipeline or command list.
+	separators = []string{"|", "||", "&&", ";", "&", "|&"}
+	// sudoArgOpts are sudo options that take a value, which must be skipped too.
 	sudoArgOpts = []string{"-u", "-g", "-C", "-D", "-h", "-p", "-r", "-t", "-U", "-T"}
+	// wrapperOpts are wrapper options that take a value (nice -n N, env -u NAME, env -C DIR).
 	wrapperOpts = []string{"-n", "-u", "-C"} // nice -n N, env -u NAME, env -C DIR
-	wrappers    = []string{"time", "nohup", "command", "builtin", "exec", "nice", "env"}
-	gitArgOpts  = []string{"-C", "-c", "--git-dir", "--work-tree", "--namespace"}
+	// wrappers are commands that only launch another command; the real name comes after them.
+	wrappers = []string{"time", "nohup", "command", "builtin", "exec", "nice", "env"}
+	// gitArgOpts are global git options that take a value, before the subcommand.
+	gitArgOpts = []string{"-C", "-c", "--git-dir", "--work-tree", "--namespace"}
 )
 
-// Parse analyzes the first command of line. prev is the previous command line, used for sudo retries.
+// Parse analyzes the first command of line (SPEC §6.1). prev is the previous command line;
+// it is only compared with the current one to detect "sudo !!" and is never kept.
+// Quoting is not interpreted: the line is split on whitespace.
 func Parse(line, prev string) Cmd {
 	toks := strings.Fields(line)
 	end := len(toks)
@@ -42,6 +50,7 @@ func Parse(line, prev string) Cmd {
 	var c Cmd
 	i, afterSudo := 0, 0
 
+	// skipEnv advances i past any leading VAR=value tokens.
 	skipEnv := func() {
 		for i < len(t) && envAssign.MatchString(t[i]) {
 			i++
@@ -75,8 +84,10 @@ func Parse(line, prev string) Cmd {
 	}
 	return c
 found:
+	// Name is the basename, so "/usr/bin/make" and "\make" both count as "make".
 	c.Name = filepath.Base(strings.TrimPrefix(t[i], "\\"))
 	c.Args = t[i+1:]
+	// Find the git subcommand, skipping global options such as -C <dir> and --no-pager.
 	if c.Name == "git" {
 		for j := 0; j < len(c.Args); j++ {
 			a := c.Args[j]
@@ -90,6 +101,7 @@ found:
 			}
 		}
 	}
+	// "sudo !!" expands to sudo plus the previous line, so compare what follows sudo with prev.
 	c.SudoRetry = c.Sudo && prev != "" &&
 		strings.Join(t[afterSudo:], " ") == strings.Join(strings.Fields(prev), " ")
 	return c

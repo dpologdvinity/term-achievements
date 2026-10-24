@@ -9,8 +9,10 @@ import (
 	"github.com/dpologdvinity/term-achievements/internal/stats"
 )
 
+// t0 is the fixed base time of the tests: a Tuesday at noon, UTC. Tests never read the real clock.
 var t0 = time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)
 
+// TestTableInvariants checks the achievement table: size, unique IDs, known counters, goals and text lengths.
 func TestTableInvariants(t *testing.T) {
 	if len(All) != 40 {
 		t.Fatal(len(All))
@@ -41,6 +43,7 @@ func TestTableInvariants(t *testing.T) {
 	}
 }
 
+// TestEvaluate checks that achievements unlock once, in table order, and stay unlocked.
 func TestEvaluate(t *testing.T) {
 	s := stats.NewStats()
 	s.Counters["commands"] = 100

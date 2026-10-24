@@ -9,8 +9,10 @@ import (
 	"github.com/dpologdvinity/term-achievements/internal/stats"
 )
 
+// t0 is the fixed base time of the tests: a Tuesday at noon, UTC. Tests never read the real clock.
 var t0 = time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)
 
+// TestToasts checks the toast text and the three-line limit.
 func TestToasts(t *testing.T) {
 	if Toasts(nil) != "" {
 		t.Fatal()
@@ -31,6 +33,7 @@ func TestToasts(t *testing.T) {
 	}
 }
 
+// TestList checks the exact header, row format and progress bar of the list output.
 func TestList(t *testing.T) {
 	s := stats.NewStats()
 	s.Counters["commands"] = 37

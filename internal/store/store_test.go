@@ -11,8 +11,10 @@ import (
 	"github.com/dpologdvinity/term-achievements/internal/stats"
 )
 
+// t0 is the fixed base time of the tests: a Tuesday at noon, UTC. Tests never read the real clock.
 var t0 = time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)
 
+// TestDir checks the state directory lookup order.
 func TestDir(t *testing.T) {
 	g := func(m map[string]string) func(string) string { return func(k string) string { return m[k] } }
 	if d, _ := Dir(g(map[string]string{"TERM_ACHIEVEMENTS_HOME": "/a", "HOME": "/h"})); d != "/a" {
@@ -29,6 +31,7 @@ func TestDir(t *testing.T) {
 	}
 }
 
+// TestRoundTrip checks that Save then Load returns the same data with the right file and directory modes.
 func TestRoundTrip(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "ta")
 	s := stats.NewStats()
@@ -49,6 +52,7 @@ func TestRoundTrip(t *testing.T) {
 	}
 }
 
+// TestLoadMissingAndNullMaps checks that a missing file and null JSON maps both load as usable empty stats.
 func TestLoadMissingAndNullMaps(t *testing.T) {
 	dir := t.TempDir()
 	s, moved, err := Load(dir, t0)
@@ -62,6 +66,7 @@ func TestLoadMissingAndNullMaps(t *testing.T) {
 	}
 }
 
+// TestLoadCorrupt checks that an unparseable file is moved aside and empty stats are returned.
 func TestLoadCorrupt(t *testing.T) {
 	dir := t.TempDir()
 	os.WriteFile(filepath.Join(dir, "stats.json"), []byte("{\"counters\":"), 0o600)
@@ -74,6 +79,7 @@ func TestLoadCorrupt(t *testing.T) {
 	}
 }
 
+// TestLoadNewer checks that a newer schema version is refused, even if its shape no longer parses.
 func TestLoadNewer(t *testing.T) {
 	dir := t.TempDir()
 	os.WriteFile(filepath.Join(dir, "stats.json"), []byte(`{"version":2}`), 0o600)
@@ -86,6 +92,7 @@ func TestLoadNewer(t *testing.T) {
 	}
 }
 
+// TestLockBusy checks that a held lock makes a second Lock fail quickly with ErrBusy.
 func TestLockBusy(t *testing.T) {
 	dir := t.TempDir()
 	un, _ := Lock(dir, false, time.Second)
@@ -96,6 +103,7 @@ func TestLockBusy(t *testing.T) {
 	}
 }
 
+// TestLockSharedAndRelease checks that shared locks coexist and that unlock really releases the lock.
 func TestLockSharedAndRelease(t *testing.T) {
 	dir := t.TempDir()
 	a, err1 := Lock(dir, true, time.Second)

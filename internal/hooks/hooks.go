@@ -3,6 +3,8 @@ package hooks
 
 import "embed"
 
+// files holds the hook scripts, compiled into the binary so `init` needs no data files.
+//
 //go:embed term-achievements.zsh term-achievements.bash term-achievements.fish
 var files embed.FS
 

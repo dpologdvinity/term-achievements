@@ -6,6 +6,10 @@ Xbox-style achievements for your shell. A tiny hook reports each finished comman
 🏆 Achievement unlocked: Escaped Vim — exit vim 10 times
 ```
 
+## Contents
+
+[Install](#install) · [Setup](#setup) · [Commands](#commands) · [Privacy](#privacy) · [Bash notes](#bash-notes) · [Performance](#performance) · [Environment](#environment) · [Achievements](#achievements) · [Development](#development) · [License](#license)
+
 ## Install
 
 ```sh
@@ -132,6 +136,21 @@ Bash has no preexec hook, so the bash hook reads the newest history entry:
 - **Easily Amused** — run cowsay, fortune and friends 10 times
 - **Clean Slate** — clear the screen 500 times
 - **Toolbox** — use 30 different tracked commands
+
+## Development
+
+Requires Go 1.26 or newer. There are no third-party dependencies.
+
+```sh
+go build ./...                 # build
+go test ./...                  # run the tests (add -short to skip the speed test)
+go vet ./... && gofmt -l .     # static checks; gofmt prints nothing when clean
+go test -bench Record -run '^$' ./internal/cli/   # time one `record` call
+```
+
+The shell hook tests run real shells: bash always, zsh and fish when installed.
+For how the code is organized and why, see [ARCHITECTURE.md](ARCHITECTURE.md). The exact
+behavior is specified in [docs/SPEC.md](docs/SPEC.md).
 
 ## License
 
