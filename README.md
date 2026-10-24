@@ -1,4 +1,4 @@
-# termachievements
+# term-achievements
 
 Xbox-style achievements for your shell. A tiny hook reports each finished command, and you get a toast before your next prompt:
 
@@ -9,7 +9,7 @@ Xbox-style achievements for your shell. A tiny hook reports each finished comman
 ## Install
 
 ```sh
-go install github.com/dpologdvinity/termachievements@latest
+go install github.com/dpologdvinity/term-achievements@latest
 ```
 
 Or download an archive (linux/darwin, amd64/arm64) from the GitHub releases page.
@@ -18,25 +18,25 @@ Or download an archive (linux/darwin, amd64/arm64) from the GitHub releases page
 
 Add it at the end of your rc file.
 
-- zsh: add `eval "$(termachievements init zsh)"` to `~/.zshrc`
-- bash: add `eval "$(termachievements init bash)"` to `~/.bashrc`
-- fish: add `termachievements init fish | source` to `~/.config/fish/config.fish`
+- zsh: add `eval "$(term-achievements init zsh)"` to `~/.zshrc`
+- bash: add `eval "$(term-achievements init bash)"` to `~/.bashrc`
+- fish: add `term-achievements init fish | source` to `~/.config/fish/config.fish`
 
-Tip: `alias ach=termachievements` (not shipped; add it yourself).
+Tip: `alias ach=term-achievements` (not shipped; add it yourself).
 
 ## Commands
 
 ```
-termachievements list                 show achievements and progress
-termachievements wrapped [--year Y]   your year in the terminal
-termachievements init <shell>         print the shell hook (zsh, bash, fish)
-termachievements --version            print the version
+term-achievements list                 show achievements and progress
+term-achievements wrapped [--year Y]   your year in the terminal
+term-achievements init <shell>         print the shell hook (zsh, bash, fish)
+term-achievements --version            print the version
 ```
 
 `list` (excerpt):
 
 ```
-termachievements · 3/40 unlocked
+term-achievements · 3/40 unlocked
 
 ✓ First Steps                run your first command                       2026-10-23
 · Warming Up                 run 100 commands                             [#---------] 14/100
@@ -51,7 +51,7 @@ termachievements · 3/40 unlocked
 
 ```
 ╭────────────────────────────────────────────╮
-│ termachievements wrapped · 2026            │
+│ term-achievements wrapped · 2026           │
 │                                            │
 │ 14 commands on 1 day                       │
 │ 0.0% failed · best streak 1 day            │
@@ -83,8 +83,8 @@ Bash has no preexec hook, so the bash hook reads the newest history entry:
 
 ## Environment
 
-- `TERMACHIEVEMENTS_HOME` — state directory (default `$XDG_STATE_HOME/termachievements`, else `~/.local/state/termachievements`)
-- `TERMACHIEVEMENTS_DISABLE` — set to any non-empty value to stop recording
+- `TERM_ACHIEVEMENTS_HOME` — state directory (default `$XDG_STATE_HOME/term-achievements`, else `~/.local/state/term-achievements`)
+- `TERM_ACHIEVEMENTS_DISABLE` — set to any non-empty value to stop recording
 
 ## Achievements
 

@@ -8,20 +8,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dpologdvinity/termachievements/internal/stats"
+	"github.com/dpologdvinity/term-achievements/internal/stats"
 )
 
 var t0 = time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)
 
 func TestDir(t *testing.T) {
 	g := func(m map[string]string) func(string) string { return func(k string) string { return m[k] } }
-	if d, _ := Dir(g(map[string]string{"TERMACHIEVEMENTS_HOME": "/a", "HOME": "/h"})); d != "/a" {
+	if d, _ := Dir(g(map[string]string{"TERM_ACHIEVEMENTS_HOME": "/a", "HOME": "/h"})); d != "/a" {
 		t.Fatal(d)
 	}
-	if d, _ := Dir(g(map[string]string{"XDG_STATE_HOME": "/s", "HOME": "/h"})); d != "/s/termachievements" {
+	if d, _ := Dir(g(map[string]string{"XDG_STATE_HOME": "/s", "HOME": "/h"})); d != "/s/term-achievements" {
 		t.Fatal(d)
 	}
-	if d, _ := Dir(g(map[string]string{"XDG_STATE_HOME": "s", "HOME": "/h"})); d != "/h/.local/state/termachievements" {
+	if d, _ := Dir(g(map[string]string{"XDG_STATE_HOME": "s", "HOME": "/h"})); d != "/h/.local/state/term-achievements" {
 		t.Fatal(d)
 	}
 	if _, err := Dir(g(nil)); err == nil {

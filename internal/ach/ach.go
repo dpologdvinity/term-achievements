@@ -4,7 +4,7 @@ package ach
 import (
 	"time"
 
-	"github.com/dpologdvinity/termachievements/internal/stats"
+	"github.com/dpologdvinity/term-achievements/internal/stats"
 )
 
 // Achievement unlocks when Counter reaches Goal.

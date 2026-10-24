@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dpologdvinity/termachievements/internal/parse"
+	"github.com/dpologdvinity/term-achievements/internal/parse"
 )
 
 // Stats is the content of stats.json.

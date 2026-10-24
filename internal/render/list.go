@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dpologdvinity/termachievements/internal/ach"
-	"github.com/dpologdvinity/termachievements/internal/stats"
+	"github.com/dpologdvinity/term-achievements/internal/ach"
+	"github.com/dpologdvinity/term-achievements/internal/stats"
 )
 
 // List returns the header and one line per achievement (SPEC §8.2).
@@ -25,5 +25,5 @@ func List(s *stats.Stats, loc *time.Location) string {
 		}
 		rows.WriteString(strings.TrimRight(fmt.Sprintf("%s %-26s %-44s %s", mark, a.Title, a.Desc, right), " ") + "\n")
 	}
-	return fmt.Sprintf("termachievements · %d/%d unlocked\n\n%s", done, len(ach.All), rows.String())
+	return fmt.Sprintf("term-achievements · %d/%d unlocked\n\n%s", done, len(ach.All), rows.String())
 }

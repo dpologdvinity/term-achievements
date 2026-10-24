@@ -1,11 +1,11 @@
-// Package render turns stats into the text termachievements prints.
+// Package render turns stats into the text term-achievements prints.
 package render
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/dpologdvinity/termachievements/internal/ach"
+	"github.com/dpologdvinity/term-achievements/internal/ach"
 )
 
 const maxToasts = 3
@@ -21,7 +21,7 @@ func Toasts(unlocked []ach.Achievement) string {
 		fmt.Fprintf(&b, "🏆 Achievement unlocked: %s — %s\n", a.Title, a.Desc)
 	}
 	if len(show) < len(unlocked) {
-		fmt.Fprintf(&b, "🏆 …and %d more (see termachievements list)\n", len(unlocked)-len(show))
+		fmt.Fprintf(&b, "🏆 …and %d more (see term-achievements list)\n", len(unlocked)-len(show))
 	}
 	return b.String()
 }

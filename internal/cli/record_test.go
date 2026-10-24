@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dpologdvinity/termachievements/internal/store"
+	"github.com/dpologdvinity/term-achievements/internal/store"
 )
 
 func rec(d Deps, exit string, line ...string) {
@@ -46,7 +46,7 @@ func TestRecordStartedAndPrev(t *testing.T) {
 	d, _, _ := testDeps(t)
 	Run([]string{"record", "--exit", "0", "--started", strconv.FormatInt(t0.Unix()-700, 10), "--", "make"}, d)
 	Run([]string{"record", "--exit", "0", "--prev", "apt update", "--", "sudo", "apt", "update"}, d)
-	s, _, _ := store.Load(d.Getenv("TERMACHIEVEMENTS_HOME"), t0)
+	s, _, _ := store.Load(d.Getenv("TERM_ACHIEVEMENTS_HOME"), t0)
 	if s.Counters["long_build"] != 1 || s.Counters["sudo_retry"] != 1 {
 		t.Fatalf("%v", s.Counters)
 	}
@@ -63,12 +63,12 @@ func TestRecordBadInputSilent(t *testing.T) {
 
 func TestRecordDisabled(t *testing.T) {
 	d, out, _ := testDeps(t)
-	d.Getenv = withEnv(d.Getenv, "TERMACHIEVEMENTS_DISABLE", "1")
+	d.Getenv = withEnv(d.Getenv, "TERM_ACHIEVEMENTS_DISABLE", "1")
 	rec(d, "0", "ls")
 	if out.Len() != 0 {
 		t.Fatal(out)
 	}
-	if _, err := os.Stat(filepath.Join(d.Getenv("TERMACHIEVEMENTS_HOME"), "stats.json")); err == nil {
+	if _, err := os.Stat(filepath.Join(d.Getenv("TERM_ACHIEVEMENTS_HOME"), "stats.json")); err == nil {
 		t.Fatal("wrote state")
 	}
 }
@@ -82,7 +82,7 @@ func TestRecordPrivacy(t *testing.T) {
 	Run(append(slices.Clone(prev), "git", "commit", "-m", `"SECRET_TOKEN_abc123"`), d)
 	Run(append(slices.Clone(prev), "mysql", "-phunter2pass"), d)
 	Run(append(slices.Clone(prev), "hunter2pass"), d)
-	dir := d.Getenv("TERMACHIEVEMENTS_HOME")
+	dir := d.Getenv("TERM_ACHIEVEMENTS_HOME")
 	files := 0
 	filepath.WalkDir(dir, func(p string, e fs.DirEntry, _ error) error {
 		if e.IsDir() {
@@ -104,7 +104,7 @@ func TestRecordPrivacy(t *testing.T) {
 
 func TestRecordLockBusy(t *testing.T) {
 	d, out, _ := testDeps(t)
-	un, _ := store.Lock(d.Getenv("TERMACHIEVEMENTS_HOME"), false, time.Second)
+	un, _ := store.Lock(d.Getenv("TERM_ACHIEVEMENTS_HOME"), false, time.Second)
 	defer un()
 	s := time.Now()
 	rec(d, "0", "ls")
@@ -115,7 +115,7 @@ func TestRecordLockBusy(t *testing.T) {
 
 func TestRecordCorruptSilent(t *testing.T) {
 	d, out, errb := testDeps(t)
-	dir := d.Getenv("TERMACHIEVEMENTS_HOME")
+	dir := d.Getenv("TERM_ACHIEVEMENTS_HOME")
 	os.WriteFile(filepath.Join(dir, "stats.json"), []byte("nope"), 0o600)
 	rec(d, "0", "ls")
 	if errb.Len() != 0 || out.String() != "🏆 Achievement unlocked: First Steps — run your first command\n" {
@@ -148,7 +148,7 @@ func BenchmarkRecord(b *testing.B) {
 	home := b.TempDir()
 	d := Deps{
 		Now:      func() time.Time { return t0 },
-		Getenv:   func(k string) string { return map[string]string{"TERMACHIEVEMENTS_HOME": home, "HOME": home}[k] },
+		Getenv:   func(k string) string { return map[string]string{"TERM_ACHIEVEMENTS_HOME": home, "HOME": home}[k] },
 		Getwd:    func() (string, error) { return home, nil },
 		TempDirs: []string{"/tmp"},
 		Stdout:   io.Discard,

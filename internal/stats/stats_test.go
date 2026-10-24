@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dpologdvinity/termachievements/internal/parse"
+	"github.com/dpologdvinity/term-achievements/internal/parse"
 )
 
 var t0 = time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)

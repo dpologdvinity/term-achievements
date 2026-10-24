@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dpologdvinity/termachievements/internal/stats"
+	"github.com/dpologdvinity/term-achievements/internal/stats"
 )
 
 func TestWrappedFull(t *testing.T) {
@@ -23,7 +23,7 @@ func TestWrappedFull(t *testing.T) {
 	got, ok := Wrapped(s, 2026)
 	want := strings.Join([]string{
 		"╭────────────────────────────────────────────╮",
-		"│ termachievements wrapped · 2026            │",
+		"│ term-achievements wrapped · 2026           │",
 		"│                                            │",
 		"│ 12,345 commands on 201 days                │",
 		"│ 3.1% failed · best streak 14 days          │",

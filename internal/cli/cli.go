@@ -1,4 +1,4 @@
-// Package cli wires the termachievements commands to the stats, store and render packages.
+// Package cli wires the term-achievements commands to the stats, store and render packages.
 package cli
 
 import (
@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dpologdvinity/termachievements/internal/hooks"
-	"github.com/dpologdvinity/termachievements/internal/render"
-	"github.com/dpologdvinity/termachievements/internal/stats"
-	"github.com/dpologdvinity/termachievements/internal/store"
+	"github.com/dpologdvinity/term-achievements/internal/hooks"
+	"github.com/dpologdvinity/term-achievements/internal/render"
+	"github.com/dpologdvinity/term-achievements/internal/stats"
+	"github.com/dpologdvinity/term-achievements/internal/store"
 )
 
 // Deps holds everything Run needs from the outside world, so tests can inject it.
@@ -42,27 +42,27 @@ func RealDeps(version string) Deps {
 	}
 }
 
-const usage = `termachievements - achievements for your shell
+const usage = `term-achievements - achievements for your shell
 
 usage:
-  termachievements list                 show achievements and progress
-  termachievements wrapped [--year Y]   your year in the terminal
-  termachievements init <shell>         print the shell hook (zsh, bash, fish)
-  termachievements --version            print the version
+  term-achievements list                 show achievements and progress
+  term-achievements wrapped [--year Y]   your year in the terminal
+  term-achievements init <shell>         print the shell hook (zsh, bash, fish)
+  term-achievements --version            print the version
 
-Setup (zsh):  add  eval "$(termachievements init zsh)"  to ~/.zshrc
-Setup (bash): add  eval "$(termachievements init bash)"  to ~/.bashrc
-Setup (fish): add  termachievements init fish | source  to ~/.config/fish/config.fish
+Setup (zsh):  add  eval "$(term-achievements init zsh)"  to ~/.zshrc
+Setup (bash): add  eval "$(term-achievements init bash)"  to ~/.bashrc
+Setup (fish): add  term-achievements init fish | source  to ~/.config/fish/config.fish
 
 Only counters are stored. Command lines and arguments never touch the disk.
 `
 
 func fail(d Deps, code int, format string, a ...any) int {
-	fmt.Fprintf(d.Stderr, "termachievements: "+format+"\n", a...)
+	fmt.Fprintf(d.Stderr, "term-achievements: "+format+"\n", a...)
 	return code
 }
 
-// Run executes one termachievements invocation and returns its exit code.
+// Run executes one term-achievements invocation and returns its exit code.
 func Run(args []string, d Deps) int {
 	cmd := "list"
 	if len(args) > 0 {
@@ -70,7 +70,7 @@ func Run(args []string, d Deps) int {
 	}
 	switch cmd {
 	case "--version", "-V":
-		fmt.Fprintf(d.Stdout, "termachievements %s\n", d.Version)
+		fmt.Fprintf(d.Stdout, "term-achievements %s\n", d.Version)
 	case "list":
 		return withStats(d, func(s *stats.Stats) { fmt.Fprint(d.Stdout, render.List(s, d.Now().Location())) })
 	case "wrapped":
@@ -88,7 +88,7 @@ func Run(args []string, d Deps) int {
 	case "--help", "-h", "help":
 		fmt.Fprint(d.Stdout, usage)
 	default:
-		return fail(d, 2, "unknown command %q (see termachievements --help)", cmd)
+		return fail(d, 2, "unknown command %q (see term-achievements --help)", cmd)
 	}
 	return 0
 }
@@ -110,7 +110,7 @@ func withStats(d Deps, show func(*stats.Stats)) int {
 		return fail(d, 1, "%v", err)
 	}
 	if moved != "" {
-		fmt.Fprintf(d.Stderr, "termachievements: stats file was unreadable; moved it to %s and started fresh\n", moved)
+		fmt.Fprintf(d.Stderr, "term-achievements: stats file was unreadable; moved it to %s and started fresh\n", moved)
 		if err := store.Save(dir, s); err != nil {
 			return fail(d, 1, "%v", err)
 		}

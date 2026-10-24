@@ -10,24 +10,24 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dpologdvinity/termachievements/internal/stats"
+	"github.com/dpologdvinity/term-achievements/internal/stats"
 )
 
 var (
-	ErrBusy  = errors.New("another termachievements is busy; try again")
-	ErrNewer = errors.New("stats were written by a newer termachievements; please upgrade")
+	ErrBusy  = errors.New("another term-achievements is busy; try again")
+	ErrNewer = errors.New("stats were written by a newer term-achievements; please upgrade")
 )
 
 // Dir returns the state directory (SPEC §5.1).
 func Dir(getenv func(string) string) (string, error) {
-	if d := getenv("TERMACHIEVEMENTS_HOME"); d != "" {
+	if d := getenv("TERM_ACHIEVEMENTS_HOME"); d != "" {
 		return d, nil
 	}
 	if x := getenv("XDG_STATE_HOME"); filepath.IsAbs(x) {
-		return filepath.Join(x, "termachievements"), nil
+		return filepath.Join(x, "term-achievements"), nil
 	}
 	if h := getenv("HOME"); h != "" {
-		return filepath.Join(h, ".local", "state", "termachievements"), nil
+		return filepath.Join(h, ".local", "state", "term-achievements"), nil
 	}
 	return "", errors.New("cannot find a home directory")
 }

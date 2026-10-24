@@ -1,5 +1,5 @@
 version: 2
-project_name: termachievements
+project_name: term-achievements
 builds:
   - env:
       - CGO_ENABLED=0

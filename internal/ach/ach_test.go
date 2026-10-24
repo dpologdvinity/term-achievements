@@ -6,7 +6,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/dpologdvinity/termachievements/internal/stats"
+	"github.com/dpologdvinity/term-achievements/internal/stats"
 )
 
 var t0 = time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)

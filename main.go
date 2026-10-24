@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/dpologdvinity/termachievements/internal/cli"
+	"github.com/dpologdvinity/term-achievements/internal/cli"
 )
 
 var version = "dev"

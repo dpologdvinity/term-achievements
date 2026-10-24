@@ -1,4 +1,4 @@
-# termachievements hook for bash: eval "$(termachievements init bash)"
+# term-achievements hook for bash: eval "$(term-achievements init bash)"
 __termach_hist=""
 __termach_prev=""
 _termach_precmd() {
@@ -8,7 +8,7 @@ _termach_precmd() {
   num=${num%\*}
   if [[ -n $num && $num != "$__termach_hist" ]]; then
     if [[ -n $__termach_hist ]]; then
-      command termachievements record --exit "$e" --started "$ts" --prev "$__termach_prev" -- "$cmd" 2>/dev/null
+      command term-achievements record --exit "$e" --started "$ts" --prev "$__termach_prev" -- "$cmd" 2>/dev/null
       __termach_prev=$cmd
     fi
     __termach_hist=$num

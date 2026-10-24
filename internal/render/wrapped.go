@@ -8,8 +8,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/dpologdvinity/termachievements/internal/ach"
-	"github.com/dpologdvinity/termachievements/internal/stats"
+	"github.com/dpologdvinity/term-achievements/internal/ach"
+	"github.com/dpologdvinity/term-achievements/internal/stats"
 )
 
 const cardWidth = 42
@@ -38,7 +38,7 @@ func Wrapped(s *stats.Stats, year int) (string, bool) {
 	}
 
 	lines := []string{
-		fmt.Sprintf("termachievements wrapped · %d", year),
+		fmt.Sprintf("term-achievements wrapped · %d", year),
 		"",
 		fmt.Sprintf("%s on %s", plural(y.Commands, "command"), plural(y.ActiveDays, "day")),
 		fmt.Sprintf("%.1f%% failed · best streak %s", float64(y.Failures)*100/float64(y.Commands), plural(y.BestStreak, "day")),

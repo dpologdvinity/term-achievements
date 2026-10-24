@@ -1,16 +1,16 @@
-# termachievements — Specification (v0.1)
+# term-achievements — Specification (v0.1)
 
-`termachievements` is a single-binary CLI that gives your shell Xbox-style
+`term-achievements` is a single-binary CLI that gives your shell Xbox-style
 achievements. A small zsh, bash or fish hook reports each finished command to
-`termachievements record`, which updates local counters, unlocks achievements
+`term-achievements record`, which updates local counters, unlocks achievements
 and prints a one-line toast before your next prompt:
 
 ```
 🏆 Achievement unlocked: Escaped Vim — exit vim 10 times
 ```
 
-`termachievements list` shows every achievement with progress, and
-`termachievements wrapped` prints a shareable yearly recap card.
+`term-achievements list` shows every achievement with progress, and
+`term-achievements wrapped` prints a shareable yearly recap card.
 
 This document is the source of truth for v0.1 behavior. `docs/PLAN.md` says how
 to build it. If the plan and the spec disagree, the spec wins.
@@ -18,7 +18,7 @@ to build it. If the plan and the spec disagree, the spec wins.
 ## 1. Goals and non-goals
 
 ### Goals (v0.1)
-- Hooks for zsh, bash and fish via `termachievements init <shell>`.
+- Hooks for zsh, bash and fish via `term-achievements init <shell>`.
 - `record` runs on every prompt in under 10 ms, with no network and no git calls.
 - 40 achievements defined in one declarative Go table (§7), each unlocked by one counter reaching a goal.
 - `list` with progress, `wrapped [--year Y]` recap card.
@@ -29,15 +29,15 @@ to build it. If the plan and the spec disagree, the spec wins.
 - No full shell parsing. Tokenizing is whitespace splitting (§6.1); quoting is not interpreted.
 - No color, no sounds, no desktop notifications.
 - No Windows build (shell hooks plus `syscall.Flock`).
-- No shipped `ach` alias. The README suggests `alias ach=termachievements`.
+- No shipped `ach` alias. The README suggests `alias ach=term-achievements`.
 
 ## 2. Name availability (checked 2026-10-23)
 
 | Place | Result |
 |---|---|
-| GitHub `dpologdvinity/termachievements` | free (404) |
+| GitHub `dpologdvinity/term-achievements` | free (404) |
 | Homebrew formula / cask | free (404 / 404) |
-| npm `termachievements` | free (404) |
+| npm `term-achievements` | free (404) |
 | GitHub repos with the name | 0 results |
 
 ## 3. Tech stack (fixed)
@@ -45,7 +45,7 @@ to build it. If the plan and the spec disagree, the spec wins.
 | Item | Choice |
 |---|---|
 | Language | Go. `go.mod` says `go 1.26` (builds with the installed 1.27.3). |
-| Module path | `github.com/dpologdvinity/termachievements` |
+| Module path | `github.com/dpologdvinity/term-achievements` |
 | Dependencies | none. Stdlib only (`flag`, `encoding/json`, `syscall`, `embed`, `unicode/utf8`). |
 | Tests | stdlib `testing` only |
 | Release | GoReleaser v2, linux/darwin × amd64/arm64, `CGO_ENABLED=0` |
@@ -58,13 +58,13 @@ JSON file, and the output is plain text. Add no dependencies in v0.1.
 ## 4. CLI interface
 
 ```
-termachievements                         same as `list`
-termachievements list                    all achievements with progress
-termachievements wrapped [--year Y]      yearly recap card (default: current year)
-termachievements init <shell>            print the hook for zsh, bash or fish
-termachievements record [flags] -- LINE  record one finished command (used by the hook)
-termachievements --version | -V          print "termachievements <version>"
-termachievements --help | -h | help      print usage
+term-achievements                         same as `list`
+term-achievements list                    all achievements with progress
+term-achievements wrapped [--year Y]      yearly recap card (default: current year)
+term-achievements init <shell>            print the hook for zsh, bash or fish
+term-achievements record [flags] -- LINE  record one finished command (used by the hook)
+term-achievements --version | -V          print "term-achievements <version>"
+term-achievements --help | -h | help      print usage
 ```
 
 `record` flags: `--exit N` (required; integer), `--ms N` (duration in ms) or
@@ -75,17 +75,17 @@ at 0), `--prev LINE` (the previous command line, may be empty). Everything after
 ### 4.1 Usage text (exact)
 
 ```
-termachievements - achievements for your shell
+term-achievements - achievements for your shell
 
 usage:
-  termachievements list                 show achievements and progress
-  termachievements wrapped [--year Y]   your year in the terminal
-  termachievements init <shell>         print the shell hook (zsh, bash, fish)
-  termachievements --version            print the version
+  term-achievements list                 show achievements and progress
+  term-achievements wrapped [--year Y]   your year in the terminal
+  term-achievements init <shell>         print the shell hook (zsh, bash, fish)
+  term-achievements --version            print the version
 
-Setup (zsh):  add  eval "$(termachievements init zsh)"  to ~/.zshrc
-Setup (bash): add  eval "$(termachievements init bash)"  to ~/.bashrc
-Setup (fish): add  termachievements init fish | source  to ~/.config/fish/config.fish
+Setup (zsh):  add  eval "$(term-achievements init zsh)"  to ~/.zshrc
+Setup (bash): add  eval "$(term-achievements init bash)"  to ~/.bashrc
+Setup (fish): add  term-achievements init fish | source  to ~/.config/fish/config.fish
 
 Only counters are stored. Command lines and arguments never touch the disk.
 ```
@@ -98,17 +98,17 @@ Only counters are stored. Command lines and arguments never touch the disk.
 | 1 | Runtime error (state unreadable for `list`/`wrapped`, lock busy, newer state version). |
 | 2 | Usage error. |
 
-Errors: `termachievements: <message>` on stderr. Usage errors (exact):
-- unknown command: `termachievements: unknown command "<x>" (see termachievements --help)`
-- `init` with no or bad shell: `termachievements: init needs a shell: zsh, bash or fish`
-- bad `--year`: `termachievements: --year must be a year like 2026`
+Errors: `term-achievements: <message>` on stderr. Usage errors (exact):
+- unknown command: `term-achievements: unknown command "<x>" (see term-achievements --help)`
+- `init` with no or bad shell: `term-achievements: init needs a shell: zsh, bash or fish`
+- bad `--year`: `term-achievements: --year must be a year like 2026`
 
 ## 5. State
 
 ### 5.1 Location
-1. `$TERMACHIEVEMENTS_HOME` if set and non-empty (tests always set this).
-2. `$XDG_STATE_HOME/termachievements` if `XDG_STATE_HOME` is an absolute path.
-3. `$HOME/.local/state/termachievements`.
+1. `$TERM_ACHIEVEMENTS_HOME` if set and non-empty (tests always set this).
+2. `$XDG_STATE_HOME/term-achievements` if `XDG_STATE_HOME` is an absolute path.
+3. `$HOME/.local/state/term-achievements`.
 
 Dir mode `0700`, file mode `0600`. Files: `stats.json`, `stats.lock`.
 
@@ -141,11 +141,11 @@ type Year struct {
 
 ### 5.3 Load, save, lock
 Same rules as a small key-value file:
-- Read-modify-write holds `syscall.Flock(LOCK_EX)` on `stats.lock`. `record` tries `LOCK_NB` every 500 µs for at most **5 ms**; on timeout it drops this one event and exits 0 silently. `list` and `wrapped` take a shared lock (`LOCK_SH`) with a 2 s budget, then exit 1 with `termachievements: another termachievements is busy; try again`.
+- Read-modify-write holds `syscall.Flock(LOCK_EX)` on `stats.lock`. `record` tries `LOCK_NB` every 500 µs for at most **5 ms**; on timeout it drops this one event and exits 0 silently. `list` and `wrapped` take a shared lock (`LOCK_SH`) with a 2 s budget, then exit 1 with `term-achievements: another term-achievements is busy; try again`.
 - Save is atomic (`stats.json.tmp-<pid>` then `os.Rename`).
 - Missing file: empty stats (all maps empty, Version 1).
-- Unparseable JSON: rename to `stats.json.corrupt-<unix seconds>` and start empty. `list`/`wrapped` print `termachievements: stats file was unreadable; moved it to <path> and started fresh` to stderr (exit 0). `record` stays silent.
-- `version` > 1: `record` does nothing; `list`/`wrapped` exit 1 with `termachievements: stats were written by a newer termachievements; please upgrade`.
+- Unparseable JSON: rename to `stats.json.corrupt-<unix seconds>` and start empty. `list`/`wrapped` print `term-achievements: stats file was unreadable; moved it to <path> and started fresh` to stderr (exit 0). `record` stays silent.
+- `version` > 1: `record` does nothing; `list`/`wrapped` exit 1 with `term-achievements: stats were written by a newer term-achievements; please upgrade`.
 
 ### 5.4 Privacy rules (tested)
 - The command line, the previous command line, every argument, and the cwd path are used only in memory during one `record` run. None of them is written anywhere.
@@ -160,7 +160,7 @@ by `TestRecordBudget` (median of 20 runs < 10 ms, skipped with `-short`) and
 `BenchmarkRecord`.
 
 Steps:
-1. If `TERMACHIEVEMENTS_DISABLE` is non-empty, exit 0.
+1. If `TERM_ACHIEVEMENTS_DISABLE` is non-empty, exit 0.
 2. Parse flags; on any error exit 0. Parse LINE (§6.1). If there is no command name, exit 0.
 3. Build the event (§6.1–6.2) with `now` from the injected clock and `cwdType` (§6.2).
 4. Lock, load, `Apply` (§6.3), `Evaluate` (§7.2), save, unlock.
@@ -353,17 +353,17 @@ One line per new unlock, in table order:
 🏆 Achievement unlocked: <Title> — <Desc>
 ```
 At most 3 lines. If there are more, print 2 lines and then
-`🏆 …and <n> more (see termachievements list)` where `n = total − 2`.
+`🏆 …and <n> more (see term-achievements list)` where `n = total − 2`.
 
 ### 8.2 `list`
 
 ```
-termachievements · 3/40 unlocked
+term-achievements · 3/40 unlocked
 
 ✓ First Steps                run your first command                       2026-03-10
 · Warming Up                 run 100 commands                             [###-------] 37/100
 ```
-Header `termachievements · <u>/40 unlocked`, then an empty line, then one line
+Header `term-achievements · <u>/40 unlocked`, then an empty line, then one line
 per achievement in table order:
 `strings.TrimRight(fmt.Sprintf("%s %-26s %-44s %s", mark, Title, Desc, right), " ")`.
 Unlocked: mark `✓`, right = unlock date `2006-01-02` (in the clock's location).
@@ -380,7 +380,7 @@ right-padded with spaces to 42 runes + ` │`; content over 42 runes is cut to 4
 runes plus `…`; bottom `╰` + 44×`─` + `╯`. Content lines, in order:
 
 ```
-termachievements wrapped · <Y>
+term-achievements wrapped · <Y>
 
 <C> commands on <D> days
 <F>% failed · best streak <S> days
@@ -405,13 +405,13 @@ top commands
 - Top commands: `Year.Cmds` sorted by count desc then name asc, at most 5, each `fmt.Sprintf("  %d. %-10s %s", i, name, commas(n))`. None: `  (none tracked yet)`.
 - Achievements: those with `Unlocked[ID].Year() == Y`. `U` = their count. Titles in table order; every title except the last gets a trailing `,`. Greedy wrap: the first line is two spaces plus the first title; each next title is appended after one space if the line stays ≤ 42 runes, otherwise it starts a new line of two spaces plus the title. Zero: the `0 achievements unlocked` line and no title lines.
 
-## 9. Shell hooks (embedded `internal/hooks/termachievements.{zsh,bash,fish}`)
+## 9. Shell hooks (embedded `internal/hooks/term-achievements.{zsh,bash,fish}`)
 
 Rules: never print errors, always preserve `$?`/`$status`, never double-register.
 
 zsh (exact):
 ```zsh
-# termachievements hook for zsh: eval "$(termachievements init zsh)"
+# term-achievements hook for zsh: eval "$(term-achievements init zsh)"
 zmodload zsh/datetime 2>/dev/null
 typeset -g __termach_cmd="" __termach_prev="" __termach_t0=""
 _termach_preexec() {
@@ -422,7 +422,7 @@ _termach_precmd() {
   local e=$?
   if [[ -n $__termach_t0 ]]; then
     local ms=$(( (EPOCHREALTIME - __termach_t0) * 1000 ))
-    command termachievements record --exit "$e" --ms "${ms%.*}" --prev "$__termach_prev" -- "$__termach_cmd" 2>/dev/null
+    command term-achievements record --exit "$e" --ms "${ms%.*}" --prev "$__termach_prev" -- "$__termach_cmd" 2>/dev/null
     __termach_prev=$__termach_cmd
     __termach_t0=""
   fi
@@ -438,7 +438,7 @@ with its start time. Commands hidden from history (`HISTCONTROL=ignorespace`,
 `ignoredups`, `HISTIGNORE`) are not counted, and durations have 1-second
 resolution. Both are documented in the README.
 ```bash
-# termachievements hook for bash: eval "$(termachievements init bash)"
+# term-achievements hook for bash: eval "$(term-achievements init bash)"
 __termach_hist=""
 __termach_prev=""
 _termach_precmd() {
@@ -448,7 +448,7 @@ _termach_precmd() {
   num=${num%\*}
   if [[ -n $num && $num != "$__termach_hist" ]]; then
     if [[ -n $__termach_hist ]]; then
-      command termachievements record --exit "$e" --started "$ts" --prev "$__termach_prev" -- "$cmd" 2>/dev/null
+      command term-achievements record --exit "$e" --started "$ts" --prev "$__termach_prev" -- "$cmd" 2>/dev/null
       __termach_prev=$cmd
     fi
     __termach_hist=$num
@@ -463,14 +463,14 @@ esac
 
 fish (exact):
 ```fish
-# termachievements hook for fish: termachievements init fish | source
+# term-achievements hook for fish: term-achievements init fish | source
 if not functions -q __termach_postexec
     set -g __termach_prev ""
     function __termach_postexec --on-event fish_postexec
         set -l e $status
         set -l d $CMD_DURATION
         test -n "$argv[1]"; or return
-        command termachievements record --exit $e --ms $d --prev "$__termach_prev" -- "$argv[1]" 2>/dev/null
+        command term-achievements record --exit $e --ms $d --prev "$__termach_prev" -- "$argv[1]" 2>/dev/null
         set -g __termach_prev $argv[1]
     end
 end
@@ -479,7 +479,7 @@ end
 ## 10. Package layout
 
 ```
-termachievements/
+term-achievements/
 ├── main.go                       // os.Exit(cli.Run(os.Args[1:], cli.RealDeps(version)))
 ├── internal/
 │   ├── parse/parse.go            // Cmd, Parse
@@ -496,11 +496,11 @@ termachievements/
 
 ## 11. Testing requirements
 
-- No test touches the real HOME: state tests set `TERMACHIEVEMENTS_HOME` to `t.TempDir()`; CwdType tests build fake dirs under `t.TempDir()`.
+- No test touches the real HOME: state tests set `TERM_ACHIEVEMENTS_HOME` to `t.TempDir()`; CwdType tests build fake dirs under `t.TempDir()`.
 - The clock is injected (`Deps.Now`); tests use fixed `time.Date(..., time.UTC)` values. There is no randomness.
 - Privacy test: record `git commit -m "SECRET_TOKEN_abc123"`, `mysql -phunter2pass`, a bare `hunter2pass` (not a tracked name), with `--prev "export API_KEY=zzsecretzz"`, from a cwd named `secretproject`; then every file under the state dir must not contain `SECRET_TOKEN_abc123`, `hunter2pass`, `zzsecretzz`, `secretproject`, or `-m`.
 - Unit tests for every counter row of §6.3, the streak rules, the table invariants, toast truncation, `list` lines, and the full `wrapped` card.
-- Hook tests run real bash (interactive, commands on stdin) and zsh/fish when installed, with a fake `termachievements` that logs its argv.
+- Hook tests run real bash (interactive, commands on stdin) and zsh/fish when installed, with a fake `term-achievements` that logs its argv.
 - `TestRecordBudget` / `BenchmarkRecord` with a stats file that already holds a busy year (§6).
 - CI: `gofmt -l .` empty, `go vet ./...`, `go test ./...` on ubuntu-latest (apt `zsh fish`) and macos-latest.
 
@@ -508,12 +508,12 @@ termachievements/
 
 - All commands in §4 behave as specified; tests, vet and gofmt are clean; `TestRecordBudget` passes.
 - Manual check in a real zsh and bash: `vim` + `:q` ten times shows the Escaped Vim toast.
-- README: install, setup per shell, a sample toast, `list` and `wrapped` examples, the privacy section (§5.4), bash limitations (§9), `alias ach=termachievements` tip, `TERMACHIEVEMENTS_DISABLE`, `TERMACHIEVEMENTS_HOME`.
+- README: install, setup per shell, a sample toast, `list` and `wrapped` examples, the privacy section (§5.4), bash limitations (§9), `alias ach=term-achievements` tip, `TERM_ACHIEVEMENTS_DISABLE`, `TERM_ACHIEVEMENTS_HOME`.
 - GoReleaser builds linux/darwin × amd64/arm64.
 
 ## 13. Later
 
 - Hidden/secret achievements, rarity tiers, points.
-- `wrapped --markdown` and an SVG card, `termachievements reset`, export.
+- `wrapped --markdown` and an SVG card, `term-achievements reset`, export.
 - Proper shell tokenizing (quotes, subshells), counting every command in a pipeline.
 - Optional color, PowerShell hook, Homebrew tap.

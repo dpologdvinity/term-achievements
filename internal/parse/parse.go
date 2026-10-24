@@ -1,4 +1,4 @@
-// Package parse extracts the few facts termachievements needs from a command line.
+// Package parse extracts the few facts term-achievements needs from a command line.
 // The line is only ever held in memory.
 package parse
 

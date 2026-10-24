@@ -22,12 +22,12 @@ func writeHook(t *testing.T, shell string) string {
 	return p
 }
 
-// fakeBin installs a termachievements that appends its argv, '|'-separated, to a log.
+// fakeBin installs a term-achievements that appends its argv, '|'-separated, to a log.
 func fakeBin(t *testing.T) (binDir, logPath string) {
 	t.Helper()
 	binDir, logPath = t.TempDir(), filepath.Join(t.TempDir(), "log")
 	script := "#!/bin/sh\nprintf '%s|' \"$@\" >> " + logPath + "\necho >> " + logPath + "\n"
-	if err := os.WriteFile(filepath.Join(binDir, "termachievements"), []byte(script), 0o755); err != nil {
+	if err := os.WriteFile(filepath.Join(binDir, "term-achievements"), []byte(script), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	return binDir, logPath
@@ -35,7 +35,7 @@ func fakeBin(t *testing.T) (binDir, logPath string) {
 
 func TestScript(t *testing.T) {
 	for _, sh := range []string{"zsh", "bash", "fish"} {
-		if s, ok := Script(sh); !ok || !strings.Contains(s, "termachievements hook for "+sh) {
+		if s, ok := Script(sh); !ok || !strings.Contains(s, "term-achievements hook for "+sh) {
 			t.Errorf("%s: %v", sh, ok)
 		}
 	}

@@ -1,8 +1,8 @@
-# termachievements v0.1 Implementation Plan
+# term-achievements v0.1 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build `termachievements`, a Go CLI whose shell hook records each finished command as counters, unlocks 40 declarative achievements with a one-line toast, and prints `list` and `wrapped` views, without ever storing command lines.
+**Goal:** Build `term-achievements`, a Go CLI whose shell hook records each finished command as counters, unlocks 40 declarative achievements with a one-line toast, and prints `list` and `wrapped` views, without ever storing command lines.
 
 **Architecture:** `internal/parse` turns a command line into a small in-memory `Cmd`. `internal/stats` applies an `Event` to counters, streaks and per-year aggregates. `internal/ach` holds the 40-row table and the unlock check. `internal/store` does locked, atomic JSON I/O. `internal/render` produces toast, list and wrapped text. `internal/cli` wires commands with an injected clock.
 
@@ -12,13 +12,13 @@
 
 ## Global Constraints
 
-- Module `github.com/dpologdvinity/termachievements`; `go.mod` line `go 1.26`; no third-party dependencies.
+- Module `github.com/dpologdvinity/term-achievements`; `go.mod` line `go 1.26`; no third-party dependencies.
 - License MIT, `Copyright (c) 2026 Kaitlyn Bassford`.
-- State dir: `$TERMACHIEVEMENTS_HOME`, else `$XDG_STATE_HOME/termachievements` (absolute only), else `$HOME/.local/state/termachievements`; dir `0700`, files `0600`.
+- State dir: `$TERM_ACHIEVEMENTS_HOME`, else `$XDG_STATE_HOME/term-achievements` (absolute only), else `$HOME/.local/state/term-achievements`; dir `0700`, files `0600`.
 - Never write a command line, argument, previous line, cwd path or untracked command name to disk (SPEC §5.4).
 - `record` always exits 0, never writes to stderr, finishes in under 10 ms, runs no subprocess.
 - Tests never touch the real HOME; the clock is injected; base time `t0 = time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)` (a Tuesday).
-- Errors: `termachievements: <message>` on stderr; exit 1 runtime, 2 usage.
+- Errors: `term-achievements: <message>` on stderr; exit 1 runtime, 2 usage.
 - User-facing text copied verbatim from SPEC §4.1, §7.1, §8.
 - Releases: linux/darwin × amd64/arm64, `CGO_ENABLED=0`.
 - Conventional Commits. Never commit `CLAUDE.md`, `.claude/`, `AGENTS.md`, `.mcp.json`, `.env`.
@@ -54,17 +54,17 @@
   func Run(args []string, d Deps) int
   func RealDeps(version string) Deps
   ```
-  Test helper (used by Tasks 10–11): `func testDeps(t *testing.T) (Deps, *bytes.Buffer, *bytes.Buffer)` with `Now` returning `t0`, `Getenv` from a map holding `TERMACHIEVEMENTS_HOME=t.TempDir()` and `HOME=<another t.TempDir()>`, `Getwd` returning a third temp dir, `TempDirs` = `[]string{<a fourth temp dir>}`.
+  Test helper (used by Tasks 10–11): `func testDeps(t *testing.T) (Deps, *bytes.Buffer, *bytes.Buffer)` with `Now` returning `t0`, `Getenv` from a map holding `TERM_ACHIEVEMENTS_HOME=t.TempDir()` and `HOME=<another t.TempDir()>`, `Getwd` returning a third temp dir, `TempDirs` = `[]string{<a fourth temp dir>}`.
 
 - [ ] **Step 1: Write the failing test**
 
 ```go
 func TestVersionHelpUnknown(t *testing.T) {
     d, out, errb := testDeps(t); d.Version = "0.1.0"
-    if Run([]string{"--version"}, d) != 0 || out.String() != "termachievements 0.1.0\n" { t.Fatal(out) }
+    if Run([]string{"--version"}, d) != 0 || out.String() != "term-achievements 0.1.0\n" { t.Fatal(out) }
     out.Reset()
-    if Run([]string{"help"}, d) != 0 || !strings.HasPrefix(out.String(), "termachievements - achievements for your shell\n") { t.Fatal(out) }
-    if Run([]string{"nope"}, d) != 2 || errb.String() != "termachievements: unknown command \"nope\" (see termachievements --help)\n" { t.Fatal(errb) }
+    if Run([]string{"help"}, d) != 0 || !strings.HasPrefix(out.String(), "term-achievements - achievements for your shell\n") { t.Fatal(out) }
+    if Run([]string{"nope"}, d) != 2 || errb.String() != "term-achievements: unknown command \"nope\" (see term-achievements --help)\n" { t.Fatal(errb) }
 }
 ```
 
@@ -75,10 +75,10 @@ Expected: FAIL (build error: `undefined: Run`)
 
 - [ ] **Step 3: Implement**
 
-`go mod init github.com/dpologdvinity/termachievements`, set `go 1.26`. `main.go` with `var version = "dev"`. `Run` handles `--version`/`-V`, `--help`/`-h`/`help` (SPEC §4.1 verbatim) and unknown commands. `LICENSE` MIT with `Copyright (c) 2026 Kaitlyn Bassford`; `.gitignore`: `dist/`, `.env`.
+`go mod init github.com/dpologdvinity/term-achievements`, set `go 1.26`. `main.go` with `var version = "dev"`. `Run` handles `--version`/`-V`, `--help`/`-h`/`help` (SPEC §4.1 verbatim) and unknown commands. `LICENSE` MIT with `Copyright (c) 2026 Kaitlyn Bassford`; `.gitignore`: `dist/`, `.env`.
 CI (`ci.yml`): push + pull_request; matrix `[ubuntu-latest, macos-latest]`; `actions/checkout@v7`; `actions/setup-go@v7` with `go-version-file: go.mod`; ubuntu only: `sudo apt-get update && sudo apt-get install -y zsh fish`; then `test -z "$(gofmt -l .)"`, `go vet ./...`, `go test ./...`.
 Release (`release.yml`): tags `v*`, `permissions: contents: write`, checkout `fetch-depth: 0`, setup-go, `goreleaser/goreleaser-action@v7` with `version: "~> v2"`, `args: release --clean`, `GITHUB_TOKEN`.
-`.goreleaser.yaml`: `version: 2`, `project_name: termachievements`, `CGO_ENABLED=0`, `goos: [linux, darwin]`, `goarch: [amd64, arm64]`, `ldflags: ["-s -w -X main.version={{.Version}}"]`, archives `formats: [tar.gz]` with `LICENSE` and `README.md`, `checksum.name_template: checksums.txt`.
+`.goreleaser.yaml`: `version: 2`, `project_name: term-achievements`, `CGO_ENABLED=0`, `goos: [linux, darwin]`, `goarch: [amd64, arm64]`, `ldflags: ["-s -w -X main.version={{.Version}}"]`, archives `formats: [tar.gz]` with `LICENSE` and `README.md`, `checksum.name_template: checksums.txt`.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -89,7 +89,7 @@ Expected: PASS
 
 ```bash
 git add go.mod main.go LICENSE .gitignore internal/cli .github .goreleaser.yaml
-git commit -m "chore: scaffold termachievements CLI with CI and release config"
+git commit -m "chore: scaffold term-achievements CLI with CI and release config"
 ```
 
 ---
@@ -389,8 +389,8 @@ git commit -m "feat(ach): add the 40-achievement table and unlock evaluation"
 - Consumes: `stats.Stats`, `stats.NewStats` (Task 3).
 - Produces:
   ```go
-  var ErrBusy = errors.New("another termachievements is busy; try again")
-  var ErrNewer = errors.New("stats were written by a newer termachievements; please upgrade")
+  var ErrBusy = errors.New("another term-achievements is busy; try again")
+  var ErrNewer = errors.New("stats were written by a newer term-achievements; please upgrade")
   func Dir(getenv func(string) string) (string, error)
   func Lock(dir string, shared bool, budget time.Duration) (unlock func(), err error) // stats.lock; LOCK_EX or LOCK_SH, LOCK_NB every 500µs
   func Load(dir string, now time.Time) (s *stats.Stats, movedTo string, err error)
@@ -402,9 +402,9 @@ git commit -m "feat(ach): add the 40-achievement table and unlock evaluation"
 ```go
 func TestDir(t *testing.T) {
     g := func(m map[string]string) func(string) string { return func(k string) string { return m[k] } }
-    if d, _ := Dir(g(map[string]string{"TERMACHIEVEMENTS_HOME": "/a", "HOME": "/h"})); d != "/a" { t.Fatal(d) }
-    if d, _ := Dir(g(map[string]string{"XDG_STATE_HOME": "/s", "HOME": "/h"})); d != "/s/termachievements" { t.Fatal(d) }
-    if d, _ := Dir(g(map[string]string{"XDG_STATE_HOME": "s", "HOME": "/h"})); d != "/h/.local/state/termachievements" { t.Fatal(d) }
+    if d, _ := Dir(g(map[string]string{"TERM_ACHIEVEMENTS_HOME": "/a", "HOME": "/h"})); d != "/a" { t.Fatal(d) }
+    if d, _ := Dir(g(map[string]string{"XDG_STATE_HOME": "/s", "HOME": "/h"})); d != "/s/term-achievements" { t.Fatal(d) }
+    if d, _ := Dir(g(map[string]string{"XDG_STATE_HOME": "s", "HOME": "/h"})); d != "/h/.local/state/term-achievements" { t.Fatal(d) }
 }
 func TestRoundTrip(t *testing.T) {
     dir := filepath.Join(t.TempDir(), "ta")
@@ -474,7 +474,7 @@ func TestToasts(t *testing.T) {
     four := Toasts(ach.All[0:4])
     want := "🏆 Achievement unlocked: First Steps — run your first command\n" +
         "🏆 Achievement unlocked: Warming Up — run 100 commands\n" +
-        "🏆 …and 2 more (see termachievements list)\n"
+        "🏆 …and 2 more (see term-achievements list)\n"
     if four != want { t.Fatalf("%q", four) }
     if three := Toasts(ach.All[0:3]); strings.Count(three, "\n") != 3 || strings.Contains(three, "more") { t.Fatal(three) }
 }
@@ -483,7 +483,7 @@ func TestList(t *testing.T) {
     s.Counters["commands"] = 37; s.Unlocked["first_steps"] = t0
     out := List(s, time.UTC)
     lines := strings.Split(out, "\n")
-    if lines[0] != "termachievements · 1/40 unlocked" || lines[1] != "" { t.Fatal(lines[:2]) }
+    if lines[0] != "term-achievements · 1/40 unlocked" || lines[1] != "" { t.Fatal(lines[:2]) }
     if lines[2] != "✓ First Steps                run your first command                       2026-03-10" { t.Fatalf("%q", lines[2]) }
     if lines[3] != "· Warming Up                 run 100 commands                             [###-------] 37/100" { t.Fatalf("%q", lines[3]) }
     if len(lines) != 43 || lines[42] != "" { t.Fatal(len(lines)) } // 2 header + 40 rows + trailing newline
@@ -536,7 +536,7 @@ func TestWrappedFull(t *testing.T) {
     got, ok := Wrapped(s, 2026)
     want := strings.Join([]string{
         "╭────────────────────────────────────────────╮",
-        "│ termachievements wrapped · 2026            │",
+        "│ term-achievements wrapped · 2026           │",
         "│                                            │",
         "│ 12,345 commands on 201 days                │",
         "│ 3.1% failed · best streak 14 days          │",
@@ -603,7 +603,7 @@ git commit -m "feat(render): add the yearly wrapped card"
 ### Task 9: Shell hooks
 
 **Files:**
-- Create: `internal/hooks/hooks.go`, `internal/hooks/termachievements.zsh`, `internal/hooks/termachievements.bash`, `internal/hooks/termachievements.fish`
+- Create: `internal/hooks/hooks.go`, `internal/hooks/term-achievements.zsh`, `internal/hooks/term-achievements.bash`, `internal/hooks/term-achievements.fish`
 - Test: `internal/hooks/hooks_test.go`
 
 **Interfaces:**
@@ -611,7 +611,7 @@ git commit -m "feat(render): add the yearly wrapped card"
 
 - [ ] **Step 1: Write the failing tests**
 
-Helper `fakeBin(t) (binDir, logPath string)`: writes an executable `termachievements` that runs `printf '%s|' "$@" >> <log>; echo >> <log>`.
+Helper `fakeBin(t) (binDir, logPath string)`: writes an executable `term-achievements` that runs `printf '%s|' "$@" >> <log>; echo >> <log>`.
 
 ```go
 func TestBashHookInteractive(t *testing.T) {
@@ -705,7 +705,7 @@ func TestRecordStartedAndPrev(t *testing.T) {
     d, _, _ := testDeps(t)
     Run([]string{"record", "--exit", "0", "--started", strconv.FormatInt(t0.Unix()-700, 10), "--", "make"}, d)
     Run([]string{"record", "--exit", "0", "--prev", "apt update", "--", "sudo", "apt", "update"}, d)
-    s, _, _ := store.Load(d.Getenv("TERMACHIEVEMENTS_HOME"), t0)
+    s, _, _ := store.Load(d.Getenv("TERM_ACHIEVEMENTS_HOME"), t0)
     if s.Counters["long_build"] != 1 || s.Counters["sudo_retry"] != 1 { t.Fatalf("%v", s.Counters) }
 }
 func TestRecordBadInputSilent(t *testing.T) {
@@ -715,10 +715,10 @@ func TestRecordBadInputSilent(t *testing.T) {
     }
 }
 func TestRecordDisabled(t *testing.T) {
-    d, out, _ := testDeps(t); d.Getenv = withEnv(d.Getenv, "TERMACHIEVEMENTS_DISABLE", "1")
+    d, out, _ := testDeps(t); d.Getenv = withEnv(d.Getenv, "TERM_ACHIEVEMENTS_DISABLE", "1")
     rec(d, "0", "ls")
     if out.Len() != 0 { t.Fatal(out) }
-    if _, err := os.Stat(filepath.Join(d.Getenv("TERMACHIEVEMENTS_HOME"), "stats.json")); err == nil { t.Fatal("wrote state") }
+    if _, err := os.Stat(filepath.Join(d.Getenv("TERM_ACHIEVEMENTS_HOME"), "stats.json")); err == nil { t.Fatal("wrote state") }
 }
 func TestRecordPrivacy(t *testing.T) {
     d, _, _ := testDeps(t)
@@ -728,7 +728,7 @@ func TestRecordPrivacy(t *testing.T) {
     Run(append(prev, "git", "commit", "-m", `"SECRET_TOKEN_abc123"`), d)
     Run(append(prev, "mysql", "-phunter2pass"), d)
     Run(append(prev, "hunter2pass"), d)
-    dir := d.Getenv("TERMACHIEVEMENTS_HOME")
+    dir := d.Getenv("TERM_ACHIEVEMENTS_HOME")
     filepath.WalkDir(dir, func(p string, e fs.DirEntry, _ error) error {
         if e.IsDir() { return nil }
         b, _ := os.ReadFile(p)
@@ -740,7 +740,7 @@ func TestRecordPrivacy(t *testing.T) {
 }
 func TestRecordLockBusy(t *testing.T) {
     d, out, _ := testDeps(t)
-    un, _ := store.Lock(d.Getenv("TERMACHIEVEMENTS_HOME"), false, time.Second); defer un()
+    un, _ := store.Lock(d.Getenv("TERM_ACHIEVEMENTS_HOME"), false, time.Second); defer un()
     s := time.Now(); rec(d, "0", "ls")
     if time.Since(s) > 50*time.Millisecond || out.Len() != 0 { t.Fatal("must drop the event fast and silently") }
 }
@@ -796,27 +796,27 @@ git commit -m "feat(cli): add the record command with toasts and privacy guarant
 ```go
 func TestListCommand(t *testing.T) {
     d, out, _ := testDeps(t)
-    if Run(nil, d) != 0 || !strings.HasPrefix(out.String(), "termachievements · 0/40 unlocked\n\n") { t.Fatal(out) }
+    if Run(nil, d) != 0 || !strings.HasPrefix(out.String(), "term-achievements · 0/40 unlocked\n\n") { t.Fatal(out) }
     rec(d, "0", "ls"); out.Reset()
     if Run([]string{"list"}, d) != 0 || !strings.Contains(out.String(), "✓ First Steps") { t.Fatal(out) }
 }
 func TestListCorruptWarns(t *testing.T) {
     d, _, errb := testDeps(t)
-    os.WriteFile(filepath.Join(d.Getenv("TERMACHIEVEMENTS_HOME"), "stats.json"), []byte("nope"), 0o600)
-    if Run([]string{"list"}, d) != 0 || !strings.HasPrefix(errb.String(), "termachievements: stats file was unreadable; moved it to ") { t.Fatal(errb) }
+    os.WriteFile(filepath.Join(d.Getenv("TERM_ACHIEVEMENTS_HOME"), "stats.json"), []byte("nope"), 0o600)
+    if Run([]string{"list"}, d) != 0 || !strings.HasPrefix(errb.String(), "term-achievements: stats file was unreadable; moved it to ") { t.Fatal(errb) }
 }
 func TestWrappedCommand(t *testing.T) {
     d, out, errb := testDeps(t)
     if Run([]string{"wrapped"}, d) != 0 || out.String() != "no commands recorded in 2026 yet\n" { t.Fatal(out) }
     rec(d, "0", "git", "status"); out.Reset()
     if Run([]string{"wrapped", "--year", "2026"}, d) != 0 || !strings.Contains(out.String(), "│ 1 command on 1 day") { t.Fatal(out) }
-    if Run([]string{"wrapped", "--year", "twenty"}, d) != 2 || errb.String() != "termachievements: --year must be a year like 2026\n" { t.Fatal(errb) }
+    if Run([]string{"wrapped", "--year", "twenty"}, d) != 2 || errb.String() != "term-achievements: --year must be a year like 2026\n" { t.Fatal(errb) }
 }
 func TestInitCommand(t *testing.T) {
     d, out, errb := testDeps(t)
     want, _ := hooks.Script("bash")
     if Run([]string{"init", "bash"}, d) != 0 || out.String() != want { t.Fatal(out) }
-    if Run([]string{"init"}, d) != 2 || errb.String() != "termachievements: init needs a shell: zsh, bash or fish\n" { t.Fatal(errb) }
+    if Run([]string{"init"}, d) != 2 || errb.String() != "term-achievements: init needs a shell: zsh, bash or fish\n" { t.Fatal(errb) }
 }
 ```
 
@@ -827,7 +827,7 @@ Expected: FAIL (`unknown command "list"`)
 
 - [ ] **Step 3: Implement**
 
-`list`/`wrapped` take `store.Lock(dir, true, 2*time.Second)` (busy → exit 1 with `termachievements: ` + `ErrBusy`), `store.Load`, print the corrupt warning if `movedTo != ""`, and save only when a corrupt file was moved (so the fresh empty file exists). `--year` accepts integers 1970–9999 only. Location for list dates: `d.Now().Location()`.
+`list`/`wrapped` take `store.Lock(dir, true, 2*time.Second)` (busy → exit 1 with `term-achievements: ` + `ErrBusy`), `store.Load`, print the corrupt warning if `movedTo != ""`, and save only when a corrupt file was moved (so the fresh empty file exists). `--year` accepts integers 1970–9999 only. Location for list dates: `d.Now().Location()`.
 
 - [ ] **Step 4: Run tests to verify they pass**
 
@@ -848,16 +848,16 @@ git commit -m "feat(cli): add list, wrapped and init commands"
 **Files:**
 - Create: `README.md`
 
-- [ ] **Step 1: Write README.md** with: pitch plus a sample toast; Install (`go install github.com/dpologdvinity/termachievements@latest`, release archives); Setup per shell (SPEC §4.1 lines; "add it at the end of your rc file"); a tip `alias ach=termachievements` (not shipped); Commands with a real `list` excerpt and a real `wrapped` card copied from your own run; Privacy (SPEC §5.4, in plain words, plus the tracked-name rule); bash notes (history-based, 1-second durations, `ignorespace`/`ignoredups` commands not counted); Environment (`TERMACHIEVEMENTS_HOME`, `TERMACHIEVEMENTS_DISABLE`); the full achievement list (Title — Desc) generated from `ach.All`; License MIT.
+- [ ] **Step 1: Write README.md** with: pitch plus a sample toast; Install (`go install github.com/dpologdvinity/term-achievements@latest`, release archives); Setup per shell (SPEC §4.1 lines; "add it at the end of your rc file"); a tip `alias ach=term-achievements` (not shipped); Commands with a real `list` excerpt and a real `wrapped` card copied from your own run; Privacy (SPEC §5.4, in plain words, plus the tracked-name rule); bash notes (history-based, 1-second durations, `ignorespace`/`ignoredups` commands not counted); Environment (`TERM_ACHIEVEMENTS_HOME`, `TERM_ACHIEVEMENTS_DISABLE`); the full achievement list (Title — Desc) generated from `ach.All`; License MIT.
 
 - [ ] **Step 2: Full verification**
 
-Run: `test -z "$(gofmt -l .)" && go vet ./... && go test ./... && go build -o /tmp/termachievements . && TERMACHIEVEMENTS_HOME=$(mktemp -d) /tmp/termachievements list | head -3`
-Expected: all pass; output starts with `termachievements · 0/40 unlocked`.
+Run: `test -z "$(gofmt -l .)" && go vet ./... && go test ./... && go build -o /tmp/term-achievements . && TERM_ACHIEVEMENTS_HOME=$(mktemp -d) /tmp/term-achievements list | head -3`
+Expected: all pass; output starts with `term-achievements · 0/40 unlocked`.
 
 - [ ] **Step 3: Manual check (SPEC §12)**
 
-In `zsh -f` with `TERMACHIEVEMENTS_HOME=$(mktemp -d)` and `/tmp` on `PATH`: `eval "$(termachievements init zsh)"`, then run `vim -c q` ten times. Expected: `🏆 Achievement unlocked: First Steps — run your first command` after the first and `🏆 Achievement unlocked: Escaped Vim — exit vim 10 times` after the tenth. Repeat once in `bash --norc` with the bash hook.
+In `zsh -f` with `TERM_ACHIEVEMENTS_HOME=$(mktemp -d)` and `/tmp` on `PATH`: `eval "$(term-achievements init zsh)"`, then run `vim -c q` ten times. Expected: `🏆 Achievement unlocked: First Steps — run your first command` after the first and `🏆 Achievement unlocked: Escaped Vim — exit vim 10 times` after the tenth. Repeat once in `bash --norc` with the bash hook.
 
 - [ ] **Step 4: Commit**
 

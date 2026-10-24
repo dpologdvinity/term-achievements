@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dpologdvinity/termachievements/internal/ach"
-	"github.com/dpologdvinity/termachievements/internal/stats"
+	"github.com/dpologdvinity/term-achievements/internal/ach"
+	"github.com/dpologdvinity/term-achievements/internal/stats"
 )
 
 var t0 = time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)
@@ -22,7 +22,7 @@ func TestToasts(t *testing.T) {
 	four := Toasts(ach.All[0:4])
 	want := "🏆 Achievement unlocked: First Steps — run your first command\n" +
 		"🏆 Achievement unlocked: Warming Up — run 100 commands\n" +
-		"🏆 …and 2 more (see termachievements list)\n"
+		"🏆 …and 2 more (see term-achievements list)\n"
 	if four != want {
 		t.Fatalf("%q", four)
 	}
@@ -37,7 +37,7 @@ func TestList(t *testing.T) {
 	s.Unlocked["first_steps"] = t0
 	out := List(s, time.UTC)
 	lines := strings.Split(out, "\n")
-	if lines[0] != "termachievements · 1/40 unlocked" || lines[1] != "" {
+	if lines[0] != "term-achievements · 1/40 unlocked" || lines[1] != "" {
 		t.Fatal(lines[:2])
 	}
 	if lines[2] != "✓ First Steps                run your first command                       2026-03-10" {

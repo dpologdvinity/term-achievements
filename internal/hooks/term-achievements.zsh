@@ -1,4 +1,4 @@
-# termachievements hook for zsh: eval "$(termachievements init zsh)"
+# term-achievements hook for zsh: eval "$(term-achievements init zsh)"
 zmodload zsh/datetime 2>/dev/null
 typeset -g __termach_cmd="" __termach_prev="" __termach_t0=""
 _termach_preexec() {
@@ -9,7 +9,7 @@ _termach_precmd() {
   local e=$?
   if [[ -n $__termach_t0 ]]; then
     local ms=$(( (EPOCHREALTIME - __termach_t0) * 1000 ))
-    command termachievements record --exit "$e" --ms "${ms%.*}" --prev "$__termach_prev" -- "$__termach_cmd" 2>/dev/null
+    command term-achievements record --exit "$e" --ms "${ms%.*}" --prev "$__termach_prev" -- "$__termach_cmd" 2>/dev/null
     __termach_prev=$__termach_cmd
     __termach_t0=""
   fi

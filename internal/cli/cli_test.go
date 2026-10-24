@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"bytes"
-	"github.com/dpologdvinity/termachievements/internal/hooks"
+	"github.com/dpologdvinity/term-achievements/internal/hooks"
 	"strings"
 	"testing"
 	"time"
@@ -24,7 +24,7 @@ func withEnv(g func(string) string, k, v string) func(string) string {
 
 func testDeps(t *testing.T) (Deps, *bytes.Buffer, *bytes.Buffer) {
 	t.Helper()
-	env := map[string]string{"TERMACHIEVEMENTS_HOME": t.TempDir(), "HOME": t.TempDir()}
+	env := map[string]string{"TERM_ACHIEVEMENTS_HOME": t.TempDir(), "HOME": t.TempDir()}
 	cwd := t.TempDir()
 	out, errb := &bytes.Buffer{}, &bytes.Buffer{}
 	return Deps{
@@ -40,21 +40,21 @@ func testDeps(t *testing.T) (Deps, *bytes.Buffer, *bytes.Buffer) {
 func TestVersionHelpUnknown(t *testing.T) {
 	d, out, errb := testDeps(t)
 	d.Version = "0.1.0"
-	if Run([]string{"--version"}, d) != 0 || out.String() != "termachievements 0.1.0\n" {
+	if Run([]string{"--version"}, d) != 0 || out.String() != "term-achievements 0.1.0\n" {
 		t.Fatal(out)
 	}
 	out.Reset()
-	if Run([]string{"help"}, d) != 0 || !strings.HasPrefix(out.String(), "termachievements - achievements for your shell\n") {
+	if Run([]string{"help"}, d) != 0 || !strings.HasPrefix(out.String(), "term-achievements - achievements for your shell\n") {
 		t.Fatal(out)
 	}
-	if Run([]string{"nope"}, d) != 2 || errb.String() != "termachievements: unknown command \"nope\" (see termachievements --help)\n" {
+	if Run([]string{"nope"}, d) != 2 || errb.String() != "term-achievements: unknown command \"nope\" (see term-achievements --help)\n" {
 		t.Fatal(errb)
 	}
 }
 
 func TestListCommand(t *testing.T) {
 	d, out, _ := testDeps(t)
-	if Run(nil, d) != 0 || !strings.HasPrefix(out.String(), "termachievements · 0/40 unlocked\n\n") {
+	if Run(nil, d) != 0 || !strings.HasPrefix(out.String(), "term-achievements · 0/40 unlocked\n\n") {
 		t.Fatal(out)
 	}
 	rec(d, "0", "ls")
@@ -66,8 +66,8 @@ func TestListCommand(t *testing.T) {
 
 func TestListCorruptWarns(t *testing.T) {
 	d, _, errb := testDeps(t)
-	os.WriteFile(filepath.Join(d.Getenv("TERMACHIEVEMENTS_HOME"), "stats.json"), []byte("nope"), 0o600)
-	if Run([]string{"list"}, d) != 0 || !strings.HasPrefix(errb.String(), "termachievements: stats file was unreadable; moved it to ") {
+	os.WriteFile(filepath.Join(d.Getenv("TERM_ACHIEVEMENTS_HOME"), "stats.json"), []byte("nope"), 0o600)
+	if Run([]string{"list"}, d) != 0 || !strings.HasPrefix(errb.String(), "term-achievements: stats file was unreadable; moved it to ") {
 		t.Fatal(errb)
 	}
 	errb.Reset()
@@ -78,9 +78,9 @@ func TestListCorruptWarns(t *testing.T) {
 
 func TestListNewerAndBusy(t *testing.T) {
 	d, _, errb := testDeps(t)
-	dir := d.Getenv("TERMACHIEVEMENTS_HOME")
+	dir := d.Getenv("TERM_ACHIEVEMENTS_HOME")
 	os.WriteFile(filepath.Join(dir, "stats.json"), []byte(`{"version":2}`), 0o600)
-	if Run([]string{"list"}, d) != 1 || errb.String() != "termachievements: stats were written by a newer termachievements; please upgrade\n" {
+	if Run([]string{"list"}, d) != 1 || errb.String() != "term-achievements: stats were written by a newer term-achievements; please upgrade\n" {
 		t.Fatal(errb)
 	}
 }
@@ -95,7 +95,7 @@ func TestWrappedCommand(t *testing.T) {
 	if Run([]string{"wrapped", "--year", "2026"}, d) != 0 || !strings.Contains(out.String(), "│ 1 command on 1 day") {
 		t.Fatal(out)
 	}
-	if Run([]string{"wrapped", "--year", "twenty"}, d) != 2 || errb.String() != "termachievements: --year must be a year like 2026\n" {
+	if Run([]string{"wrapped", "--year", "twenty"}, d) != 2 || errb.String() != "term-achievements: --year must be a year like 2026\n" {
 		t.Fatal(errb)
 	}
 }
@@ -106,7 +106,7 @@ func TestInitCommand(t *testing.T) {
 	if Run([]string{"init", "bash"}, d) != 0 || out.String() != want {
 		t.Fatal(out)
 	}
-	if Run([]string{"init"}, d) != 2 || errb.String() != "termachievements: init needs a shell: zsh, bash or fish\n" {
+	if Run([]string{"init"}, d) != 2 || errb.String() != "term-achievements: init needs a shell: zsh, bash or fish\n" {
 		t.Fatal(errb)
 	}
 }

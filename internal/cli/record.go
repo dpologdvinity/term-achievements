@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dpologdvinity/termachievements/internal/ach"
-	"github.com/dpologdvinity/termachievements/internal/parse"
-	"github.com/dpologdvinity/termachievements/internal/render"
-	"github.com/dpologdvinity/termachievements/internal/stats"
-	"github.com/dpologdvinity/termachievements/internal/store"
+	"github.com/dpologdvinity/term-achievements/internal/ach"
+	"github.com/dpologdvinity/term-achievements/internal/parse"
+	"github.com/dpologdvinity/term-achievements/internal/render"
+	"github.com/dpologdvinity/term-achievements/internal/stats"
+	"github.com/dpologdvinity/term-achievements/internal/store"
 )
 
 // recordLockBudget keeps the prompt from waiting on another shell: past it, the event is dropped.
@@ -25,7 +25,7 @@ func runRecord(args []string, d Deps) (code int) {
 			code = 0
 		}
 	}()
-	if d.Getenv("TERMACHIEVEMENTS_DISABLE") != "" {
+	if d.Getenv("TERM_ACHIEVEMENTS_DISABLE") != "" {
 		return 0
 	}
 	fs := flag.NewFlagSet("record", flag.ContinueOnError)
