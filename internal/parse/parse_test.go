@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// normalize turns nil slices into empty ones so DeepEqual compares content only.
 func normalize(c Cmd) Cmd {
 	if c.Args == nil {
 		c.Args = []string{}
@@ -15,6 +16,7 @@ func normalize(c Cmd) Cmd {
 	return c
 }
 
+// TestParse checks the name, flags and sudo-retry detection for typical command lines.
 func TestParse(t *testing.T) {
 	cases := []struct {
 		line, prev string
@@ -27,6 +29,8 @@ func TestParse(t *testing.T) {
 		{"git -C repo -c a=b --no-pager commit -m x", "", Cmd{Name: "git", Args: []string{"-C", "repo", "-c", "a=b", "--no-pager", "commit", "-m", "x"}, Sub: "commit", SubArgs: []string{"-m", "x"}}},
 		{"ls -la | grep foo && echo hi", "", Cmd{Name: "ls", Args: []string{"-la"}}},
 		{"\\ls", "", Cmd{Name: "ls", Args: []string{}}},
+		{"nice -n 10 make", "", Cmd{Name: "make"}},
+		{"env -u HOME FOO=1 cargo build", "", Cmd{Name: "cargo", Args: []string{"build"}}},
 		{"sudo apt  update", "apt update", Cmd{Name: "apt", Sudo: true, Args: []string{"update"}, SudoRetry: true}},
 		{"sudo apt update", "apt upgrade", Cmd{Name: "apt", Sudo: true, Args: []string{"update"}}},
 	}
@@ -38,6 +42,7 @@ func TestParse(t *testing.T) {
 	}
 }
 
+// TestParseEdgeCases checks that lines with no command (empty, only FOO=1, only sudo, a leading pipe) give an empty Name.
 func TestParseEdgeCases(t *testing.T) {
 	for _, line := range []string{"", "   ", "FOO=1", "sudo", "sudo -u root", "| grep x"} {
 		if got := Parse(line, ""); got.Name != "" {

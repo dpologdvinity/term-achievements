@@ -12,8 +12,10 @@ import (
 	"github.com/dpologdvinity/term-achievements/internal/stats"
 )
 
+// cardWidth is the width of the text area inside the card, in runes.
 const cardWidth = 42
 
+// places lists working-directory kinds in tie-break order, with their display names.
 var places = []struct{ key, name string }{
 	{"repo", "git repos"}, {"home", "your home dir"}, {"tmp", "temp dirs"}, {"other", "other places"},
 }
@@ -72,6 +74,8 @@ func Wrapped(s *stats.Stats, year int) (string, bool) {
 	return b.String(), true
 }
 
+// topCommands formats up to five most-used tracked commands, most used first
+// (ties by name), as numbered lines.
 func topCommands(cmds map[string]int64) []string {
 	names := make([]string, 0, len(cmds))
 	for n := range cmds {
@@ -109,6 +113,7 @@ func wrapTitles(titles []string) []string {
 	return out
 }
 
+// plural formats a count with comma separators and a singular or plural noun.
 func plural(n int64, word string) string {
 	if n == 1 {
 		return "1 " + word
@@ -116,6 +121,7 @@ func plural(n int64, word string) string {
 	return commas(n) + " " + word + "s"
 }
 
+// commas formats n with comma thousands separators, e.g. 12,345.
 func commas(n int64) string {
 	s := strconv.FormatInt(n, 10)
 	neg := strings.HasPrefix(s, "-")
@@ -129,6 +135,7 @@ func commas(n int64) string {
 	return s
 }
 
+// dur formats a duration in milliseconds as "1h 2m", "3m 4s" or "5s" (rounded down).
 func dur(ms int64) string {
 	sec := ms / 1000
 	switch {

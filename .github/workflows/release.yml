@@ -1,3 +1,5 @@
+# Publishes a GitHub release with archives for linux/darwin (amd64, arm64) when a tag
+# like v0.1.0 is pushed. Settings live in .goreleaser.yaml.
 name: release
 on:
   push:

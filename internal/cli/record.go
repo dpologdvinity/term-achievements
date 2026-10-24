@@ -17,7 +17,15 @@ import (
 // recordLockBudget keeps the prompt from waiting on another shell: past it, the event is dropped.
 const recordLockBudget = 5 * time.Millisecond
 
-// runRecord records one finished command. It is the shell hook's hot path: it always returns 0
+// runRecord records one finished command. Its arguments are the flags after "record":
+//
+//	--exit N       exit status of the command (required)
+//	--ms N         duration in milliseconds, or
+//	--started S    start time in Unix seconds (duration = now - S)
+//	--prev LINE    the previous command line, used to detect "sudo !!"
+//	-- WORDS...    the command line itself
+//
+// It is the shell hook's hot path: it always returns 0
 // and never writes to stderr, whatever goes wrong.
 func runRecord(args []string, d Deps) (code int) {
 	defer func() {

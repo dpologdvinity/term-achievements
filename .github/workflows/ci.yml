@@ -1,3 +1,5 @@
+# Continuous integration: formatting, vet, tests (with the race detector, on Linux and
+# macOS), a vulnerability scan, and a dry run of the release build.
 name: ci
 on:
   push:
@@ -22,9 +24,13 @@ jobs:
       - name: Install shells
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y zsh fish
+      - name: Install fish
+        if: matrix.os == 'macos-latest'
+        run: brew install fish
       - run: test -z "$(gofmt -l .)"
       - run: go vet ./...
       - run: go test -race ./...
+  # Scans dependencies and the standard library for known vulnerabilities.
   vulncheck:
     runs-on: ubuntu-latest
     steps:
@@ -33,6 +39,8 @@ jobs:
         with:
           go-version-file: go.mod
       - run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+  # Builds all release archives locally without publishing, so a broken release config
+  # fails here and not on the day of a tag.
   goreleaser-check:
     runs-on: ubuntu-latest
     steps:

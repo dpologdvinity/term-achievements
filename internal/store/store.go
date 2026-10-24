@@ -14,7 +14,9 @@ import (
 )
 
 var (
-	ErrBusy  = errors.New("another term-achievements is busy; try again")
+	// ErrBusy means the lock stayed taken for the whole time budget.
+	ErrBusy = errors.New("another term-achievements is busy; try again")
+	// ErrNewer means stats.json has a newer schema than this build understands.
 	ErrNewer = errors.New("stats were written by a newer term-achievements; please upgrade")
 )
 
@@ -110,7 +112,7 @@ func Load(dir string, now time.Time) (s *stats.Stats, movedTo string, err error)
 	return s, "", nil
 }
 
-// Save writes s atomically with mode 0600, creating dir with mode 0700.
+// Save writes s atomically (temporary file, then rename) with mode 0600, creating dir with mode 0700.
 func Save(dir string, s *stats.Stats) error {
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return err
@@ -120,7 +122,7 @@ func Save(dir string, s *stats.Stats) error {
 		return err
 	}
 	tmp := filepath.Join(dir, fmt.Sprintf("stats.json.tmp-%d", os.Getpid()))
-	if err := os.WriteFile(tmp, b, 0o600); err != nil {
+	if err := os.WriteFile(tmp, b, 0o600); err != nil { // no fsync: it costs ~30ms on some disks, and record has a 10ms budget
 		os.Remove(tmp)
 		return err
 	}

@@ -184,7 +184,7 @@ func Parse(line, prev string) Cmd
 2. Skip leading env assignments: tokens matching `^[A-Za-z_][A-Za-z0-9_]*=`.
 3. Wrappers, repeatedly:
    - `sudo` or `doas`: `Sudo = true`; skip it, then skip tokens starting with `-`; for `-u -g -C -D -h -p -r -t -U -T` also skip the next token. Remember the index right after `sudo`/`doas` as `afterSudo`.
-   - `time`, `nohup`, `command`, `builtin`, `exec`, `nice`, `env`: skip it, then skip tokens starting with `-` and env assignments.
+   - `time`, `nohup`, `command`, `builtin`, `exec`, `nice`, `env`: skip it, then skip tokens starting with `-` (and the value after `-n`, `-u`, `-C`) and env assignments.
 4. `Name = filepath.Base(strings.TrimPrefix(tok, "\\"))`. `Args` = the following tokens until a separator.
 5. If `Name == "git"`: walk `Args`; `-C`, `-c`, `--git-dir`, `--work-tree`, `--namespace` skip themselves and the next token; other tokens starting with `-` are skipped; the first other token is `Sub`, and the rest are `SubArgs`.
 6. `SudoRetry = Sudo && prev != "" && strings.Join(toks[afterSudo:end], " ") == strings.Join(strings.Fields(prev), " ")`, where `end` is the first separator index (or `len(toks)`). This is what `sudo !!` expands to.

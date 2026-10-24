@@ -42,6 +42,7 @@ func RealDeps(version string) Deps {
 	}
 }
 
+// usage is the text printed by --help. Its wording is fixed by SPEC §4.1.
 const usage = `term-achievements - achievements for your shell
 
 usage:
@@ -57,6 +58,8 @@ Setup (fish): add  term-achievements init fish | source  to ~/.config/fish/confi
 Only counters are stored. Command lines and arguments never touch the disk.
 `
 
+// fail prints "termachievements: <message>" to stderr and returns code, so callers can
+// write `return fail(...)`.
 func fail(d Deps, code int, format string, a ...any) int {
 	fmt.Fprintf(d.Stderr, "term-achievements: "+format+"\n", a...)
 	return code
@@ -119,6 +122,8 @@ func withStats(d Deps, show func(*stats.Stats)) int {
 	return 0
 }
 
+// runWrapped implements `wrapped [--year Y]`. The year defaults to the current year, and
+// only years 1970-9999 are accepted. A year without data prints a short notice, not a card.
 func runWrapped(args []string, d Deps) int {
 	fs := flag.NewFlagSet("wrapped", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)

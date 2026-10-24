@@ -1,3 +1,4 @@
+# GoReleaser v2 configuration: static binaries (no cgo) for linux and darwin.
 version: 2
 project_name: term-achievements
 builds:
