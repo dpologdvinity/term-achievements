@@ -1,7 +1,11 @@
 package cli
 
 import (
+	"os"
+	"path/filepath"
+
 	"bytes"
+	"github.com/dpologdvinity/termachievements/internal/hooks"
 	"strings"
 	"testing"
 	"time"
@@ -44,6 +48,65 @@ func TestVersionHelpUnknown(t *testing.T) {
 		t.Fatal(out)
 	}
 	if Run([]string{"nope"}, d) != 2 || errb.String() != "termachievements: unknown command \"nope\" (see termachievements --help)\n" {
+		t.Fatal(errb)
+	}
+}
+
+func TestListCommand(t *testing.T) {
+	d, out, _ := testDeps(t)
+	if Run(nil, d) != 0 || !strings.HasPrefix(out.String(), "termachievements · 0/40 unlocked\n\n") {
+		t.Fatal(out)
+	}
+	rec(d, "0", "ls")
+	out.Reset()
+	if Run([]string{"list"}, d) != 0 || !strings.Contains(out.String(), "✓ First Steps") {
+		t.Fatal(out)
+	}
+}
+
+func TestListCorruptWarns(t *testing.T) {
+	d, _, errb := testDeps(t)
+	os.WriteFile(filepath.Join(d.Getenv("TERMACHIEVEMENTS_HOME"), "stats.json"), []byte("nope"), 0o600)
+	if Run([]string{"list"}, d) != 0 || !strings.HasPrefix(errb.String(), "termachievements: stats file was unreadable; moved it to ") {
+		t.Fatal(errb)
+	}
+	errb.Reset()
+	if Run([]string{"list"}, d) != 0 || errb.Len() != 0 {
+		t.Fatal("warns only once:", errb)
+	}
+}
+
+func TestListNewerAndBusy(t *testing.T) {
+	d, _, errb := testDeps(t)
+	dir := d.Getenv("TERMACHIEVEMENTS_HOME")
+	os.WriteFile(filepath.Join(dir, "stats.json"), []byte(`{"version":2}`), 0o600)
+	if Run([]string{"list"}, d) != 1 || errb.String() != "termachievements: stats were written by a newer termachievements; please upgrade\n" {
+		t.Fatal(errb)
+	}
+}
+
+func TestWrappedCommand(t *testing.T) {
+	d, out, errb := testDeps(t)
+	if Run([]string{"wrapped"}, d) != 0 || out.String() != "no commands recorded in 2026 yet\n" {
+		t.Fatal(out)
+	}
+	rec(d, "0", "git", "status")
+	out.Reset()
+	if Run([]string{"wrapped", "--year", "2026"}, d) != 0 || !strings.Contains(out.String(), "│ 1 command on 1 day") {
+		t.Fatal(out)
+	}
+	if Run([]string{"wrapped", "--year", "twenty"}, d) != 2 || errb.String() != "termachievements: --year must be a year like 2026\n" {
+		t.Fatal(errb)
+	}
+}
+
+func TestInitCommand(t *testing.T) {
+	d, out, errb := testDeps(t)
+	want, _ := hooks.Script("bash")
+	if Run([]string{"init", "bash"}, d) != 0 || out.String() != want {
+		t.Fatal(out)
+	}
+	if Run([]string{"init"}, d) != 2 || errb.String() != "termachievements: init needs a shell: zsh, bash or fish\n" {
 		t.Fatal(errb)
 	}
 }

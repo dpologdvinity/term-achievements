@@ -2,10 +2,17 @@
 package cli
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"time"
+
+	"github.com/dpologdvinity/termachievements/internal/hooks"
+	"github.com/dpologdvinity/termachievements/internal/render"
+	"github.com/dpologdvinity/termachievements/internal/stats"
+	"github.com/dpologdvinity/termachievements/internal/store"
 )
 
 // Deps holds everything Run needs from the outside world, so tests can inject it.
@@ -64,6 +71,18 @@ func Run(args []string, d Deps) int {
 	switch cmd {
 	case "--version", "-V":
 		fmt.Fprintf(d.Stdout, "termachievements %s\n", d.Version)
+	case "list":
+		return withStats(d, func(s *stats.Stats) { fmt.Fprint(d.Stdout, render.List(s, d.Now().Location())) })
+	case "wrapped":
+		return runWrapped(args, d)
+	case "init":
+		if len(args) == 1 {
+			if script, ok := hooks.Script(args[0]); ok {
+				fmt.Fprint(d.Stdout, script)
+				return 0
+			}
+		}
+		return fail(d, 2, "init needs a shell: zsh, bash or fish")
 	case "record":
 		return runRecord(args, d)
 	case "--help", "-h", "help":
@@ -72,4 +91,50 @@ func Run(args []string, d Deps) int {
 		return fail(d, 2, "unknown command %q (see termachievements --help)", cmd)
 	}
 	return 0
+}
+
+// withStats loads the stats under a shared lock and passes them to show.
+// A corrupt file is moved aside, announced once, and replaced by a fresh one.
+func withStats(d Deps, show func(*stats.Stats)) int {
+	dir, err := store.Dir(d.Getenv)
+	if err != nil {
+		return fail(d, 1, "%v", err)
+	}
+	unlock, err := store.Lock(dir, true, 2*time.Second)
+	if err != nil {
+		return fail(d, 1, "%v", err)
+	}
+	defer unlock()
+	s, moved, err := store.Load(dir, d.Now())
+	if err != nil {
+		return fail(d, 1, "%v", err)
+	}
+	if moved != "" {
+		fmt.Fprintf(d.Stderr, "termachievements: stats file was unreadable; moved it to %s and started fresh\n", moved)
+		if err := store.Save(dir, s); err != nil {
+			return fail(d, 1, "%v", err)
+		}
+	}
+	show(s)
+	return 0
+}
+
+func runWrapped(args []string, d Deps) int {
+	fs := flag.NewFlagSet("wrapped", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	ys := fs.String("year", strconv.Itoa(d.Now().Year()), "")
+	if err := fs.Parse(args); err != nil {
+		return fail(d, 2, "%v", err)
+	}
+	year, err := strconv.Atoi(*ys)
+	if err != nil || year < 1970 || year > 9999 || fs.NArg() != 0 {
+		return fail(d, 2, "--year must be a year like 2026")
+	}
+	return withStats(d, func(s *stats.Stats) {
+		card, ok := render.Wrapped(s, year)
+		if !ok {
+			card = fmt.Sprintf("no commands recorded in %d yet\n", year)
+		}
+		fmt.Fprint(d.Stdout, card)
+	})
 }
