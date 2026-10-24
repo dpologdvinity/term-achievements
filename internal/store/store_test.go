@@ -15,6 +15,14 @@ import (
 var t0 = time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)
 
 // TestDir checks the state directory lookup order.
+// writeStats puts content into dir/stats.json.
+func writeStats(t *testing.T, dir, content string) {
+	t.Helper()
+	if err := os.WriteFile(filepath.Join(dir, "stats.json"), []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestDir(t *testing.T) {
 	g := func(m map[string]string) func(string) string { return func(k string) string { return m[k] } }
 	if d, _ := Dir(g(map[string]string{"TERM_ACHIEVEMENTS_HOME": "/a", "HOME": "/h"})); d != "/a" {
@@ -59,7 +67,7 @@ func TestLoadMissingAndNullMaps(t *testing.T) {
 	if err != nil || moved != "" || s.Version != 1 || s.Counters == nil {
 		t.Fatal(s, err)
 	}
-	os.WriteFile(filepath.Join(dir, "stats.json"), []byte(`{"version":1,"counters":null,"unlocked":null,"years":null,"cmds":null}`), 0o600)
+	writeStats(t, dir, `{"version":1,"counters":null,"unlocked":null,"years":null,"cmds":null}`)
 	s, _, err = Load(dir, t0)
 	if err != nil || s.Counters == nil || s.Cmds == nil || s.Unlocked == nil || s.Years == nil {
 		t.Fatal(s, err)
@@ -69,7 +77,7 @@ func TestLoadMissingAndNullMaps(t *testing.T) {
 // TestLoadCorrupt checks that an unparseable file is moved aside and empty stats are returned.
 func TestLoadCorrupt(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "stats.json"), []byte("{\"counters\":"), 0o600)
+	writeStats(t, dir, `{"counters":`)
 	s, moved, err := Load(dir, t0)
 	if err != nil || len(s.Counters) != 0 || moved != filepath.Join(dir, fmt.Sprintf("stats.json.corrupt-%d", t0.Unix())) {
 		t.Fatal(s, moved, err)
@@ -82,11 +90,11 @@ func TestLoadCorrupt(t *testing.T) {
 // TestLoadNewer checks that a newer schema version is refused, even if its shape no longer parses.
 func TestLoadNewer(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "stats.json"), []byte(`{"version":2}`), 0o600)
+	writeStats(t, dir, `{"version":2}`)
 	if _, _, err := Load(dir, t0); !errors.Is(err, ErrNewer) {
 		t.Fatal(err)
 	}
-	os.WriteFile(filepath.Join(dir, "stats.json"), []byte(`{"version":3,"counters":[1]}`), 0o600)
+	writeStats(t, dir, `{"version":3,"counters":[1]}`)
 	if _, _, err := Load(dir, t0); !errors.Is(err, ErrNewer) {
 		t.Fatal("shape changes in newer versions must still read as newer:", err)
 	}

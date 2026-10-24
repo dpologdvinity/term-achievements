@@ -53,7 +53,9 @@ func TestBashHookInteractive(t *testing.T) {
 	cmd := exec.Command("bash", "--norc", "-i")
 	cmd.Env = []string{"PATH=" + bin + ":/usr/bin:/bin", "HOME=" + t.TempDir(), "HISTFILE=/dev/null", "TERM=dumb"}
 	cmd.Stdin = strings.NewReader("source " + hookFile + "\nfalse\ntrue  x\n\n")
-	cmd.Run()
+	if err := cmd.Run(); err != nil {
+		t.Logf("bash exited with %v (output is checked below)", err)
+	}
 	b, _ := os.ReadFile(log)
 	lines := strings.Split(strings.TrimSpace(string(b)), "\n")
 	if len(lines) != 2 {

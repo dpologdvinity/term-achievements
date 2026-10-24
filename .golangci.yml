@@ -1,0 +1,9 @@
+# golangci-lint configuration (v2). Run: golangci-lint run ./...
+version: "2"
+linters:
+  settings:
+    errcheck:
+      # Writing to stdout/stderr can only fail on a closed pipe, where there is nothing useful to do.
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintf

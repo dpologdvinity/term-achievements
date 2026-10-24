@@ -83,7 +83,9 @@ func TestRecordDisabled(t *testing.T) {
 func TestRecordPrivacy(t *testing.T) {
 	d, _, _ := testDeps(t)
 	secretDir := filepath.Join(t.TempDir(), "secretproject")
-	os.MkdirAll(secretDir, 0o755)
+	if err := os.MkdirAll(secretDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
 	d.Getwd = func() (string, error) { return secretDir, nil }
 	prev := []string{"record", "--exit", "0", "--prev", "export API_KEY=zzsecretzz", "--"}
 	Run(append(slices.Clone(prev), "git", "commit", "-m", `"SECRET_TOKEN_abc123"`), d)
@@ -91,7 +93,7 @@ func TestRecordPrivacy(t *testing.T) {
 	Run(append(slices.Clone(prev), "hunter2pass"), d)
 	dir := d.Getenv("TERM_ACHIEVEMENTS_HOME")
 	files := 0
-	filepath.WalkDir(dir, func(p string, e fs.DirEntry, _ error) error {
+	err := filepath.WalkDir(dir, func(p string, e fs.DirEntry, _ error) error {
 		if e.IsDir() {
 			return nil
 		}
@@ -104,6 +106,9 @@ func TestRecordPrivacy(t *testing.T) {
 		}
 		return nil
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
 	if files == 0 {
 		t.Fatal("nothing was written, the test proves nothing")
 	}
@@ -125,7 +130,7 @@ func TestRecordLockBusy(t *testing.T) {
 func TestRecordCorruptSilent(t *testing.T) {
 	d, out, errb := testDeps(t)
 	dir := d.Getenv("TERM_ACHIEVEMENTS_HOME")
-	os.WriteFile(filepath.Join(dir, "stats.json"), []byte("nope"), 0o600)
+	writeStats(t, dir, "nope")
 	rec(d, "0", "ls")
 	if errb.Len() != 0 || out.String() != "🏆 Achievement unlocked: First Steps — run your first command\n" {
 		t.Fatalf("%q %q", out, errb)

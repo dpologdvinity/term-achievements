@@ -145,6 +145,7 @@ Requires Go 1.26 or newer. There are no third-party dependencies.
 go build ./...                 # build
 go test ./...                  # run the tests (add -short to skip the speed test)
 go vet ./... && gofmt -l .     # static checks; gofmt prints nothing when clean
+golangci-lint run ./...        # linters (config in .golangci.yml)
 go test -bench Record -run '^$' ./internal/cli/   # time one `record` call
 ```
 

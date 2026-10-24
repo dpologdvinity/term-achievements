@@ -51,14 +51,15 @@ func Lock(dir string, shared bool, budget time.Duration) (unlock func(), err err
 	for {
 		err := syscall.Flock(int(f.Fd()), how|syscall.LOCK_NB)
 		if err == nil {
-			return func() { syscall.Flock(int(f.Fd()), syscall.LOCK_UN); f.Close() }, nil
+			// Closing the file would release the lock anyway; the explicit unlock is for clarity.
+			return func() { _ = syscall.Flock(int(f.Fd()), syscall.LOCK_UN); _ = f.Close() }, nil
 		}
 		if err != syscall.EWOULDBLOCK && err != syscall.EINTR {
-			f.Close()
+			_ = f.Close()
 			return nil, err
 		}
 		if !time.Now().Before(deadline) {
-			f.Close()
+			_ = f.Close()
 			return nil, ErrBusy
 		}
 		time.Sleep(500 * time.Microsecond)
@@ -123,11 +124,11 @@ func Save(dir string, s *stats.Stats) error {
 	}
 	tmp := filepath.Join(dir, fmt.Sprintf("stats.json.tmp-%d", os.Getpid()))
 	if err := os.WriteFile(tmp, b, 0o600); err != nil { // no fsync: it costs ~30ms on some disks, and record has a 10ms budget
-		os.Remove(tmp)
+		_ = os.Remove(tmp) // best effort: the original error is what matters
 		return err
 	}
 	if err := os.Rename(tmp, filepath.Join(dir, "stats.json")); err != nil {
-		os.Remove(tmp)
+		_ = os.Remove(tmp) // best effort: the original error is what matters
 		return err
 	}
 	return nil
