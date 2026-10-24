@@ -64,6 +64,8 @@ func Run(args []string, d Deps) int {
 	switch cmd {
 	case "--version", "-V":
 		fmt.Fprintf(d.Stdout, "termachievements %s\n", d.Version)
+	case "record":
+		return runRecord(args, d)
 	case "--help", "-h", "help":
 		fmt.Fprint(d.Stdout, usage)
 	default:
