@@ -45,7 +45,16 @@ brew install dpologdvinity/tap/term-achievements   # macOS and Linux
 go install github.com/dpologdvinity/term-achievements@latest
 ```
 
-Or download an archive (linux/darwin, amd64/arm64) from the GitHub releases page.
+Debian/Ubuntu and Fedora/RHEL packages (amd64, arm64) are attached to each
+[release](https://github.com/dpologdvinity/term-achievements/releases/latest):
+
+```sh
+sudo apt install ./term-achievements_<version>_linux_amd64.deb   # Debian, Ubuntu
+sudo dnf install ./term-achievements_<version>_linux_amd64.rpm   # Fedora, RHEL
+```
+
+There is no apt repository yet, so `apt install term-achievements` by name does not work.
+You can also download a plain archive (linux/darwin, amd64/arm64) from the same page.
 
 ## Setup
 

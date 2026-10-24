@@ -32,3 +32,21 @@ brews:
     license: MIT
     test: |
       assert_match "term-achievements", shell_output("#{bin}/term-achievements --version")
+
+# Linux packages attached to each GitHub release: install with
+# `sudo apt install ./term-achievements_<version>_linux_<arch>.deb` (or dnf/rpm for .rpm).
+nfpms:
+  - id: packages
+    package_name: term-achievements
+    vendor: Kaitlyn Bassford
+    maintainer: Kaitlyn Bassford <dpologdvinity@users.noreply.github.com>
+    homepage: https://github.com/dpologdvinity/term-achievements
+    description: Xbox-style achievements for your shell
+    license: MIT
+    formats: [deb, rpm]
+    bindir: /usr/bin
+    contents:
+      - src: LICENSE
+        dst: /usr/share/doc/term-achievements/LICENSE
+      - src: README.md
+        dst: /usr/share/doc/term-achievements/README.md
