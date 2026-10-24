@@ -31,6 +31,8 @@ data flow and design decisions.
 ## Install
 
 ```sh
+brew install dpologdvinity/tap/term-achievements   # macOS and Linux
+# or
 go install github.com/dpologdvinity/term-achievements@latest
 ```
 

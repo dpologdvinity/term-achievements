@@ -15,3 +15,20 @@ archives:
       - README.md
 checksum:
   name_template: checksums.txt
+
+# Homebrew formula, pushed to dpologdvinity/homebrew-tap on every tagged release.
+# (`brews` is used rather than `homebrew_casks` because casks are macOS-only and the
+# formula also serves Linuxbrew.) The token is a fine-grained PAT stored as the
+# repository secret HOMEBREW_TAP_TOKEN; the built-in GITHUB_TOKEN cannot push to another repo.
+brews:
+  - name: term-achievements
+    repository:
+      owner: dpologdvinity
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Formula
+    homepage: https://github.com/dpologdvinity/term-achievements
+    description: Xbox-style achievements for your shell
+    license: MIT
+    test: |
+      assert_match "term-achievements", shell_output("#{bin}/term-achievements --version")
