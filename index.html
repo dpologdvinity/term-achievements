@@ -1,0 +1,11 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>term-achievements apt repository</title>
+<h1>term-achievements apt repository</h1>
+<p>Xbox-style achievements for your shell. Source: <a href="https://github.com/dpologdvinity/term-achievements">github.com/dpologdvinity/term-achievements</a></p>
+<pre>
+curl -fsSL https://dpologdvinity.github.io/term-achievements/key.gpg | sudo tee /usr/share/keyrings/term-achievements.gpg &gt;/dev/null
+echo "deb [signed-by=/usr/share/keyrings/term-achievements.gpg] https://dpologdvinity.github.io/term-achievements stable main" | sudo tee /etc/apt/sources.list.d/term-achievements.list
+sudo apt update
+sudo apt install term-achievements
+</pre>

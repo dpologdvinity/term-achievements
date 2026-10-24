@@ -1,0 +1,46 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Architectures: amd64 arm64
+Codename: stable
+Components: main
+Date: Sat, 24 Oct 2026 10:45:23 +0000
+Label: term-achievements
+Origin: term-achievements
+Suite: stable
+MD5Sum:
+ bbfd317221170666a814553c5ba7b7af              664 main/binary-amd64/Packages
+ eb33b8b26420afdd640711f58c92fb11              461 main/binary-amd64/Packages.gz
+ 867b89ff92a44cc260bca239a4f3be98              664 main/binary-arm64/Packages
+ 9d009555a3a0f97929dc45ef82b11303              462 main/binary-arm64/Packages.gz
+SHA1:
+ d62e8eb563568bc518166d12102550d36c4d29e4              664 main/binary-amd64/Packages
+ 08654ae57329e710100d5e7a79bbf8cd51fd1a22              461 main/binary-amd64/Packages.gz
+ addd02f9504c1140385f08eb80d6ceb07b376621              664 main/binary-arm64/Packages
+ 49c3d3c1e64e31f4be8d077bc300fa2c728341d3              462 main/binary-arm64/Packages.gz
+SHA256:
+ 9be3d6dc7c506d26d35ac3c10a0320d9c32680e560c9ac03b4865dd4c90cc30a              664 main/binary-amd64/Packages
+ 2d55f5138739a277723144b67ba9df812b1aa674985c3d783d662316573ac9ad              461 main/binary-amd64/Packages.gz
+ 4941333fc7a36fe32339683438e363ad06dd612713bde526be9de68aa6187915              664 main/binary-arm64/Packages
+ 44687421749b856df169c189951cd9ffbb2e36fb4d330fe0858d9673e176f54a              462 main/binary-arm64/Packages.gz
+SHA512:
+ 621f24acc27344efa6d8a18e87f91437690b81391af7750c67226f7f41ec195552ddf9177aa74c1e27d3beca8df547c6ae3781d4e8d28b0bad33771a7f2e7a9a              664 main/binary-amd64/Packages
+ 30468b67780efac337c5fc68b3e505060e6197cd94438f48606bacc563f8640c334c529bc962caf7b157d76d4e6da58a5ee1ae4798f1ddde911fe50cbd01c5ca              461 main/binary-amd64/Packages.gz
+ 10525756a25a56e80bc85d2cea093314fdc37b6aaa6f682b7f5505db209d87d80578a33c7629f112363eed1b6e957340d16d84b21cc40b88fca1edd2176012c9              664 main/binary-arm64/Packages
+ 7c69633697d434c588c7d081752e1b441d3114c0ce0f47f3a1298bc13cab0725093c54a7415f92ca3dc04f01d70cfd13bbad5d695d0bb5bd02569647f67f0512              462 main/binary-arm64/Packages.gz
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEoj3kxxNzuyqxHSAWedX1nvdA3swFAmrcjEMACgkQedX1nvdA
+3sw8pRAAr55qgGT6vVwY3wjy+akVntAo5ltduWeuDt5IFbK16/Hb6Y/uebxLdo+T
+YsoN13LHcCtiqQK82OjeHWxaUl8wP+1jEk6CDuwI68ZV9e9JzZ0reDMhnDfW2FHd
+YHGc5gqzMpfxpwLCYG7vwgYswm3Zer981mRDdpfimNYIPFopLRFAdnXR+WZ/Omz8
+ZMe5OFOX6ImME6DYk1o2ug1NGYs6ebkmKvwGDm9ZztK5yFI/qgjPOExuwPd1dmNV
+J2KsEQuAq9yy4KZQPaTQMUFQta1FQ7ZMnGqsPhr2p7PbJmtSAjepPFNa8juyh7Iq
+dgMIgodseQRcN9Rjl3w/9Sp7G3H0rwABA/V+SpGFatYOtAmQpiQ49CnV5M/OiG9j
+y1KtKi4ShsjUAZFJqJJAilapo2ZYhtymkOgWdLUWqDbGyNMM3M6Q7zd8KWqS2Q5n
+EdTZI4SMgPcK7xno6yHhgYmdRUqY8FSlcb6lbLELzCKl2KVyBjjBwtgL57Qc9HiB
+D57mWXYlujO/lYUwfUNCItjYhy7v11WZYmOP83FLrT2gKCYce4qgDI5x7s9362Aq
++7kcNgiH+SpAR9noo9KAupT1t4w2OV5SbuSD5lPqmaSHv/j5fw79GNfMpS9A/Wgk
+mAjHaGLdciTeBLe0lIJoi1U0/wi+X/TyCkWwjoLk2t3We/rwBqE=
+=WdcI
+-----END PGP SIGNATURE-----

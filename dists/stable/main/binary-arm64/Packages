@@ -1,0 +1,15 @@
+Package: term-achievements
+Architecture: arm64
+Version: 0.1.3
+Priority: optional
+Maintainer: Kaitlyn Bassford <dpologdvinity@users.noreply.github.com>
+Installed-Size: 2506
+Filename: pool/main/arm64/term-achievements_0.1.3_linux_arm64.deb
+Size: 1038050
+MD5sum: ded4b9e5a5fbb13728c0ebdbac703b81
+SHA1: 5a920ea7d9d3d78c5ed52ef2461877740777db8f
+SHA256: 77f18b0444cfdf98eb7a056e1be08aa6473f70c1c6199418b5e3cc34fc341364
+SHA512: eb0b95156622e214f6aaf7278273be14012abec14c35200ea7c4ef6e43e497296f9700e5ea484e65c98d0e5d3a5286a4c7d12dbfc58c88ac365f8487d7106270
+Homepage: https://github.com/dpologdvinity/term-achievements
+Description: Xbox-style achievements for your shell
+
