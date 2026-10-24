@@ -1,6 +1,7 @@
 name: ci
 on:
   push:
+    branches: [master]
   pull_request:
 concurrency:
   group: ci-${{ github.ref }}
@@ -31,7 +32,7 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-      - run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
   goreleaser-check:
     runs-on: ubuntu-latest
     steps:
