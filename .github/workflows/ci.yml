@@ -1,68 +1,154 @@
-# Continuous integration: formatting, vet, tests (with the race detector, on Linux and
-# macOS), a vulnerability scan, and a dry run of the release build.
+# Continuous integration for term-achievements.
+#
+# Stages (each later job waits for "verify", so a broken setup fails fast):
+#   verify      - dependencies download, verify and are tidy
+#   lint        - gofmt, go vet, golangci-lint
+#   test        - full test suite with the race detector and a coverage gate
+#   vulncheck   - known-vulnerability scan
+#   build       - cross-compile all release targets
+#   release-dry-run - GoReleaser snapshot build (nothing is published)
+#
+# Releases are published by release.yml when a v* tag is pushed.
+# Actions are pinned to commit SHAs; Dependabot keeps them current.
 name: ci
+
 on:
   push:
     branches: [master]
   pull_request:
+    branches: [master]
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
+
 permissions:
   contents: read
+
+env:
+  # Minimum total statement coverage (percent) the test job must reach.
+  COVERAGE_MIN: "85"
+
 jobs:
+  verify:
+    name: verify dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod # also enables the module and build cache
+      - run: go mod download
+      - run: go mod verify
+      - name: go.mod and go.sum are tidy
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+
+  lint:
+    name: lint
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+      - name: gofmt
+        run: test -z "$(gofmt -l .)"
+      - name: go vet
+        run: go vet ./...
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+        with:
+          version: v2.15 # configuration: .golangci.yml
+
   test:
+    name: test (${{ matrix.os }})
+    needs: verify
     strategy:
+      fail-fast: true
       matrix:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
-      - name: Install shells
-        if: matrix.os == 'ubuntu-latest'
+      # The hook tests run real shells; bash is preinstalled, zsh and fish are not everywhere.
+      - name: Install shells (Linux)
+        if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y zsh fish
-      - name: Install fish
-        if: matrix.os == 'macos-latest'
+      - name: Install shells (macOS)
+        if: runner.os == 'macOS'
         run: brew install fish
-      - run: test -z "$(gofmt -l .)"
-      - run: go vet ./...
-      - run: go test -race ./...
-  # Static analysis with golangci-lint (configuration in .golangci.yml).
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - name: Run tests with coverage
+        run: go test -race -covermode=atomic -coverprofile=coverage.out ./...
+      - name: Coverage report and gate
+        shell: bash
+        run: |
+          go tool cover -func=coverage.out > coverage.txt
+          total=$(awk '/^total:/ {gsub("%","",$3); print $3}' coverage.txt)
+          echo "### Coverage (${{ matrix.os }}): ${total}%" >> "$GITHUB_STEP_SUMMARY"
+          awk -v t="$total" -v m="$COVERAGE_MIN" 'BEGIN { exit (t+0 < m+0) }' \
+            || { echo "coverage ${total}% is below the ${COVERAGE_MIN}% minimum"; exit 1; }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          go-version-file: go.mod
-      - uses: golangci/golangci-lint-action@v9
-        with:
-          version: v2.15
+          name: coverage-${{ matrix.os }}
+          path: |
+            coverage.out
+            coverage.txt
 
-  # Scans dependencies and the standard library for known vulnerabilities.
   vulncheck:
+    name: vulnerability scan
+    needs: verify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
       - run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
-  # Builds all release archives locally without publishing, so a broken release config
-  # fails here and not on the day of a tag.
-  goreleaser-check:
+
+  build:
+    name: build (${{ matrix.goos }}/${{ matrix.goarch }})
+    needs: verify
+    strategy:
+      fail-fast: true
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
-      - uses: goreleaser/goreleaser-action@v7
+      - name: Cross-compile
+        env:
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -trimpath -ldflags "-s -w -X main.version=ci-${{ github.sha }}" -o dist/term-achievements .
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: term-achievements-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/term-achievements
+          retention-days: 7
+
+  release-dry-run:
+    name: release dry run
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+      # Builds every archive locally; a broken release config fails here, not on tag day.
+      - uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7
         with:
           version: "~> v2"
           args: release --snapshot --clean --skip=publish
