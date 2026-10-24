@@ -6,9 +6,27 @@ Xbox-style achievements for your shell. A tiny hook reports each finished comman
 🏆 Achievement unlocked: Escaped Vim — exit vim 10 times
 ```
 
+## Quickstart
+
+```sh
+go install github.com/dpologdvinity/term-achievements@latest
+echo 'eval "$(term-achievements init zsh)"' >> ~/.zshrc   # or bash / fish, see Setup
+exec zsh                                                    # restart the shell
+term-achievements list                                      # see your progress
+```
+
+## How it works
+
+A small shell hook runs `term-achievements record` after every command. `record` parses the
+command line in memory, updates a handful of counters in one JSON file, unlocks any
+achievement whose counter reached its goal, and prints a one-line toast. `list` and
+`wrapped` only read that file. The code is split into small packages (`parse`, `stats`,
+`ach`, `store`, `render`, `hooks`, `cli`); see [ARCHITECTURE.md](ARCHITECTURE.md) for the
+data flow and design decisions.
+
 ## Contents
 
-[Install](#install) · [Setup](#setup) · [Commands](#commands) · [Privacy](#privacy) · [Bash notes](#bash-notes) · [Performance](#performance) · [Environment](#environment) · [Achievements](#achievements) · [Development](#development) · [License](#license)
+[Quickstart](#quickstart) · [How it works](#how-it-works) · [Install](#install) · [Setup](#setup) · [Commands](#commands) · [Privacy](#privacy) · [Bash notes](#bash-notes) · [Performance](#performance) · [Environment](#environment) · [Achievements](#achievements) · [Development](#development) · [License](#license)
 
 ## Install
 
@@ -150,7 +168,7 @@ go test -bench Record -run '^$' ./internal/cli/   # time one `record` call
 ```
 
 The shell hook tests run real shells: bash always, zsh and fish when installed.
-For how the code is organized and why, see [ARCHITECTURE.md](ARCHITECTURE.md). The exact
+For how the code is organized and why, see [ARCHITECTURE.md](ARCHITECTURE.md); for the contribution workflow, see [CONTRIBUTING.md](CONTRIBUTING.md). The exact
 behavior is specified in [docs/SPEC.md](docs/SPEC.md).
 
 ## License
