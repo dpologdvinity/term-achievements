@@ -2,3 +2,6 @@ dist/
 .env
 coverage.out
 cover.out
+coverage.txt
+.superpowers/
+STEPS-FOR-OWNER.md

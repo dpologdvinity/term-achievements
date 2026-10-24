@@ -16,8 +16,11 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
-      # Never publish a tag that does not pass the tests.
-      - run: go test ./...
+      # Never publish a tag that does not pass the full test suite.
+      - name: Install shells
+        run: sudo apt-get update && sudo apt-get install -y zsh fish
+      - name: Run tests with race detector
+        run: go test -race ./...
       - uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7
         with:
           version: "~> v2"

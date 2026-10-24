@@ -20,9 +20,9 @@ against real shells instead of skipping.
 ## Everyday commands
 
 ```sh
-go test ./...                  # all tests (add -short to skip the speed test, -race for the race detector)
-go test -cover ./...           # with coverage; CI requires at least 85% overall
-go vet ./...                   # static checks
+go test ./...                                                                 # all tests (add -short to skip the speed test, -race for the race detector)
+go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out  # overall statement coverage (CI requires at least 85%)
+go vet ./...                                                                  # static checks
 gofmt -l .                     # must print nothing; fix with `gofmt -w .`
 golangci-lint run ./...        # linters, configured in .golangci.yml
 go test -bench Record -run '^$' ./internal/cli/   # time one `record` call

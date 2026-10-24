@@ -1,12 +1,12 @@
 # Continuous integration for term-achievements.
 #
-# Stages (each later job waits for "verify", so a broken setup fails fast):
-#   verify      - dependencies download, verify and are tidy
-#   lint        - gofmt, go vet, golangci-lint
-#   test        - full test suite with the race detector and a coverage gate
-#   vulncheck   - known-vulnerability scan
-#   build       - cross-compile all release targets
-#   release-dry-run - GoReleaser snapshot build (nothing is published)
+# Stages (fails fast on broken setup, then tests before building):
+#   Stage 1: verify          - dependencies download, verify and are tidy
+#   Stage 2: lint            - gofmt, go vet, golangci-lint (waits for verify)
+#            test            - test suite with race detector and coverage gate (waits for verify)
+#            vulncheck       - known-vulnerability scan (waits for verify)
+#   Stage 3: build           - cross-compile all release targets (waits for stage 2)
+#            release-dry-run - GoReleaser snapshot build (waits for stage 2)
 #
 # Releases are published by release.yml when a v* tag is pushed.
 # Actions are pinned to commit SHAs; Dependabot keeps them current.
@@ -43,7 +43,7 @@ jobs:
       - name: go.mod and go.sum are tidy
         run: |
           go mod tidy
-          git diff --exit-code -- go.mod go.sum
+          test -z "$(git status --porcelain go.mod go.sum)"
 
   lint:
     name: lint
@@ -93,6 +93,7 @@ jobs:
           awk -v t="$total" -v m="$COVERAGE_MIN" 'BEGIN { exit (t+0 < m+0) }' \
             || { echo "coverage ${total}% is below the ${COVERAGE_MIN}% minimum"; exit 1; }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
         with:
           name: coverage-${{ matrix.os }}
           path: |
@@ -112,7 +113,7 @@ jobs:
 
   build:
     name: build (${{ matrix.goos }}/${{ matrix.goarch }})
-    needs: verify
+    needs: [lint, test, vulncheck]
     strategy:
       fail-fast: true
       matrix:
@@ -138,7 +139,7 @@ jobs:
 
   release-dry-run:
     name: release dry run
-    needs: verify
+    needs: [lint, test, vulncheck]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
