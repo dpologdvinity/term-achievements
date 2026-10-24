@@ -18,7 +18,7 @@ Xbox-style achievements for your shell. A tiny hook reports each finished comman
 ## Quickstart
 
 ```sh
-brew install dpologdvinity/tap/term-achievements            # or: go install github.com/dpologdvinity/term-achievements@latest
+brew install dpologdvinity/tap/term-achievements            # macOS/Linux; apt: see Install. Or: go install github.com/dpologdvinity/term-achievements@latest
 echo 'eval "$(term-achievements init zsh)"' >> ~/.zshrc   # or bash / fish, see Setup
 exec zsh                                                    # restart the shell
 term-achievements list                                      # see your progress
@@ -45,16 +45,19 @@ brew install dpologdvinity/tap/term-achievements   # macOS and Linux
 go install github.com/dpologdvinity/term-achievements@latest
 ```
 
-Debian/Ubuntu and Fedora/RHEL packages (amd64, arm64) are attached to each
-[release](https://github.com/dpologdvinity/term-achievements/releases/latest):
+**Debian / Ubuntu (apt, amd64 and arm64).** The packages are served from a signed apt
+repository, so `apt upgrade` keeps you current:
 
 ```sh
-sudo apt install ./term-achievements_<version>_linux_amd64.deb   # Debian, Ubuntu
-sudo dnf install ./term-achievements_<version>_linux_amd64.rpm   # Fedora, RHEL
+curl -fsSL https://dpologdvinity.github.io/term-achievements/key.gpg | sudo tee /usr/share/keyrings/term-achievements.gpg >/dev/null
+echo "deb [signed-by=/usr/share/keyrings/term-achievements.gpg] https://dpologdvinity.github.io/term-achievements stable main" | sudo tee /etc/apt/sources.list.d/term-achievements.list
+sudo apt update && sudo apt install term-achievements
 ```
 
-There is no apt repository yet, so `apt install term-achievements` by name does not work.
-You can also download a plain archive (linux/darwin, amd64/arm64) from the same page.
+**Fedora / RHEL.** Download the `.rpm` from the
+[latest release](https://github.com/dpologdvinity/term-achievements/releases/latest) and run
+`sudo dnf install ./term-achievements_<version>_linux_amd64.rpm`. The `.deb` files are
+attached there too. You can also download a plain archive (linux/darwin, amd64/arm64) from the same page.
 
 ## Setup
 

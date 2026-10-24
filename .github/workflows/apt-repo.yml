@@ -1,0 +1,70 @@
+# Publishes a signed apt repository to GitHub Pages (the gh-pages branch) from the .deb
+# files attached to release(s). Called by release.yml after each release; can also be run by
+# hand (Actions -> apt-repo -> Run workflow) to add or rebuild versions.
+#
+# Needs the repository secret APT_GPG_PRIVATE_KEY: an armored, passphrase-less GPG private
+# key used to sign the repository. Users trust the matching public key at
+# https://dpologdvinity.github.io/term-achievements/key.gpg
+name: apt-repo
+
+on:
+  workflow_call:
+    inputs:
+      tags:
+        description: Space-separated release tags whose .deb files are added
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: Space-separated release tags whose .deb files are added (e.g. "v0.1.3")
+        required: true
+        type: string
+
+# One publisher at a time, so two runs cannot overwrite each other's gh-pages commit.
+concurrency:
+  group: apt-repo
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: src
+      - name: Install apt-utils
+        run: sudo apt-get update && sudo apt-get install -y apt-utils
+      - name: Import signing key
+        env:
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+        run: |
+          echo "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
+          echo "KEY_ID=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')" >> "$GITHUB_ENV"
+      - name: Check out the gh-pages branch (creating it on first run)
+        run: |
+          git init -q -b gh-pages site
+          cd site
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git"
+          if git fetch -q origin gh-pages; then git reset -q --hard origin/gh-pages; fi
+      - name: Build the repository
+        env:
+          TAGS: ${{ inputs.tags }} # via env, never interpolated into the script text
+        run: src/scripts/build-apt-repo.sh site "$KEY_ID" $TAGS
+      - name: Commit and push
+        working-directory: site
+        env:
+          TAGS: ${{ inputs.tags }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && { echo "nothing changed"; exit 0; }
+          git commit -q -m "chore(apt): publish $TAGS"
+          git push origin gh-pages
