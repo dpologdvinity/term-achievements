@@ -29,3 +29,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Fine-grained PAT with contents:write on dpologdvinity/homebrew-tap (formula push).
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+  # Adds this release's .deb files to the signed apt repository on GitHub Pages.
+  apt-repo:
+    needs: release
+    permissions:
+      contents: write
+    uses: ./.github/workflows/apt-repo.yml
+    with:
+      tags: ${{ github.ref_name }}
+    secrets: inherit
