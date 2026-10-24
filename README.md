@@ -1,5 +1,14 @@
 # term-achievements
 
+[![CI](https://github.com/dpologdvinity/term-achievements/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/dpologdvinity/term-achievements/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/dpologdvinity/term-achievements)](https://github.com/dpologdvinity/term-achievements/releases/latest)
+[![Go Reference](https://pkg.go.dev/badge/github.com/dpologdvinity/term-achievements.svg)](https://pkg.go.dev/github.com/dpologdvinity/term-achievements)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dpologdvinity/term-achievements)](https://goreportcard.com/report/github.com/dpologdvinity/term-achievements)
+[![Go version](https://img.shields.io/github/go-mod/go-version/dpologdvinity/term-achievements)](go.mod)
+[![License: MIT](https://img.shields.io/github/license/dpologdvinity/term-achievements)](LICENSE)
+![Platforms](https://img.shields.io/badge/platforms-linux%20%7C%20macOS-blue)
+![Shells](https://img.shields.io/badge/shells-zsh%20%7C%20bash%20%7C%20fish-informational)
+
 Xbox-style achievements for your shell. A tiny hook reports each finished command, and you get a toast before your next prompt:
 
 ```
@@ -9,7 +18,7 @@ Xbox-style achievements for your shell. A tiny hook reports each finished comman
 ## Quickstart
 
 ```sh
-go install github.com/dpologdvinity/term-achievements@latest
+brew install dpologdvinity/tap/term-achievements            # or: go install github.com/dpologdvinity/term-achievements@latest
 echo 'eval "$(term-achievements init zsh)"' >> ~/.zshrc   # or bash / fish, see Setup
 exec zsh                                                    # restart the shell
 term-achievements list                                      # see your progress
@@ -26,7 +35,7 @@ data flow and design decisions.
 
 ## Contents
 
-[Quickstart](#quickstart) · [How it works](#how-it-works) · [Install](#install) · [Setup](#setup) · [Commands](#commands) · [Privacy](#privacy) · [Bash notes](#bash-notes) · [Performance](#performance) · [Environment](#environment) · [Achievements](#achievements) · [Development](#development) · [License](#license)
+[Quickstart](#quickstart) · [How it works](#how-it-works) · [Install](#install) · [Setup](#setup) · [Commands](#commands) · [Privacy](#privacy) · [Bash notes](#bash-notes) · [Performance](#performance) · [Environment](#environment) · [Achievements](#achievements) · [Development](#development) · [Contributing](#contributing) · [License](#license)
 
 ## Install
 
@@ -173,6 +182,11 @@ The shell hook tests run real shells: bash always, zsh and fish when installed.
 For how the code is organized and why, see [ARCHITECTURE.md](ARCHITECTURE.md); for the contribution workflow, see [CONTRIBUTING.md](CONTRIBUTING.md). The exact
 behavior is specified in [docs/SPEC.md](docs/SPEC.md).
 
+## Contributing
+
+Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the
+workflow, commit conventions and checks.
+
 ## License
 
-MIT
+[MIT](LICENSE) © 2026 Kaitlyn Bassford
