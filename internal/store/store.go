@@ -120,7 +120,7 @@ func Save(dir string, s *stats.Stats) error {
 		return err
 	}
 	tmp := filepath.Join(dir, fmt.Sprintf("stats.json.tmp-%d", os.Getpid()))
-	if err := os.WriteFile(tmp, b, 0o600); err != nil {
+	if err := os.WriteFile(tmp, b, 0o600); err != nil { // no fsync: it costs ~30ms on some disks, and record has a 10ms budget
 		os.Remove(tmp)
 		return err
 	}

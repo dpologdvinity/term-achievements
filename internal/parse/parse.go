@@ -23,6 +23,7 @@ var (
 	envAssign   = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*=`)
 	separators  = []string{"|", "||", "&&", ";", "&", "|&"}
 	sudoArgOpts = []string{"-u", "-g", "-C", "-D", "-h", "-p", "-r", "-t", "-U", "-T"}
+	wrapperOpts = []string{"-n", "-u", "-C"} // nice -n N, env -u NAME, env -C DIR
 	wrappers    = []string{"time", "nohup", "command", "builtin", "exec", "nice", "env"}
 	gitArgOpts  = []string{"-C", "-c", "--git-dir", "--work-tree", "--namespace"}
 )
@@ -62,6 +63,9 @@ func Parse(line, prev string) Cmd {
 		case slices.Contains(wrappers, t[i]):
 			i++
 			for i < len(t) && (strings.HasPrefix(t[i], "-") || envAssign.MatchString(t[i])) {
+				if slices.Contains(wrapperOpts, t[i]) {
+					i++
+				}
 				i++
 			}
 		default:

@@ -81,6 +81,10 @@ Bash has no preexec hook, so the bash hook reads the newest history entry:
 - Commands hidden from history (`HISTCONTROL=ignorespace`, `ignoredups`, `HISTIGNORE`) are not counted.
 - Durations have 1-second resolution.
 
+## Performance
+
+`record` does its own work (lock, load, update, save) in well under 10 ms, and has no network or subprocess. Process start-up of the binary adds to that and depends on your machine. The stats file is renamed into place but not `fsync`ed, because a sync can cost tens of milliseconds on some disks; after a power loss mid-save, stats can be reset.
+
 ## Environment
 
 - `TERM_ACHIEVEMENTS_HOME` — state directory (default `$XDG_STATE_HOME/term-achievements`, else `~/.local/state/term-achievements`)

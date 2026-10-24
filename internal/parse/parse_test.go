@@ -27,6 +27,8 @@ func TestParse(t *testing.T) {
 		{"git -C repo -c a=b --no-pager commit -m x", "", Cmd{Name: "git", Args: []string{"-C", "repo", "-c", "a=b", "--no-pager", "commit", "-m", "x"}, Sub: "commit", SubArgs: []string{"-m", "x"}}},
 		{"ls -la | grep foo && echo hi", "", Cmd{Name: "ls", Args: []string{"-la"}}},
 		{"\\ls", "", Cmd{Name: "ls", Args: []string{}}},
+		{"nice -n 10 make", "", Cmd{Name: "make"}},
+		{"env -u HOME FOO=1 cargo build", "", Cmd{Name: "cargo", Args: []string{"build"}}},
 		{"sudo apt  update", "apt update", Cmd{Name: "apt", Sudo: true, Args: []string{"update"}, SudoRetry: true}},
 		{"sudo apt update", "apt upgrade", Cmd{Name: "apt", Sudo: true, Args: []string{"update"}}},
 	}
