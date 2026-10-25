@@ -28,3 +28,18 @@ SHA512: 89ec7a7c53ffd257e3458c183e045b1a0dee4080bc37dfc360a3d1e0e47e4c229cb6df02
 Homepage: https://github.com/dpologdvinity/term-achievements
 Description: Xbox-style achievements for your shell
 
+Package: term-achievements
+Architecture: amd64
+Version: 0.1.5
+Priority: optional
+Maintainer: Kaitlyn Bassford <dpologdvinity@users.noreply.github.com>
+Installed-Size: 2539
+Filename: pool/main/amd64/term-achievements_0.1.5_linux_amd64.deb
+Size: 1141204
+MD5sum: 06260ae2bead430cf524820350dd2c18
+SHA1: 8eb67cdc5230c6a23717fba442be687ca44a5fa9
+SHA256: 9ef51869966f68449b7898082ef62b12ed9a534d6cab21f26761290392fc31e5
+SHA512: 9f048907a4f2d18bcc0dd3c47960aeb1c28c3b1bff034152859bfdc79b775b05ba37a2bf59284d0c5a2b8505711a30e715ca454bc7d708b794584b4bae9f9733
+Homepage: https://github.com/dpologdvinity/term-achievements
+Description: Xbox-style achievements for your shell
+
