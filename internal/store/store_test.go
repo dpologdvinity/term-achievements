@@ -87,6 +87,24 @@ func TestLoadCorrupt(t *testing.T) {
 	}
 }
 
+// TestLoadCorruptConcurrent checks that concurrent Loads on a corrupt file succeed without error.
+func TestLoadCorruptConcurrent(t *testing.T) {
+	dir := t.TempDir()
+	writeStats(t, dir, `{"counters":`)
+	errCh := make(chan error, 10)
+	for i := 0; i < 10; i++ {
+		go func() {
+			_, _, err := Load(dir, t0)
+			errCh <- err
+		}()
+	}
+	for i := 0; i < 10; i++ {
+		if err := <-errCh; err != nil {
+			t.Fatalf("concurrent Load failed: %v", err)
+		}
+	}
+}
+
 // TestLoadNewer checks that a newer schema version is refused, even if its shape no longer parses.
 func TestLoadNewer(t *testing.T) {
 	dir := t.TempDir()

@@ -85,6 +85,9 @@ func Load(dir string, now time.Time) (s *stats.Stats, movedTo string, err error)
 		}
 		movedTo = fmt.Sprintf("%s.corrupt-%d", path, now.Unix())
 		if err := os.Rename(path, movedTo); err != nil {
+			if errors.Is(err, os.ErrNotExist) || os.IsNotExist(err) {
+				return stats.NewStats(), "", nil
+			}
 			return nil, "", err
 		}
 		return stats.NewStats(), movedTo, nil
