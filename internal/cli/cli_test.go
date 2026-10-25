@@ -127,3 +127,20 @@ func TestInitCommand(t *testing.T) {
 		t.Fatal(errb)
 	}
 }
+
+// TestRealDeps checks that the production dependency constructor wires non-nil fields.
+func TestRealDeps(t *testing.T) {
+	d := RealDeps("v1.2.3")
+	if d.Version != "v1.2.3" {
+		t.Fatalf("expected version v1.2.3, got %q", d.Version)
+	}
+	if d.Now == nil || d.Getenv == nil || d.Getwd == nil {
+		t.Fatal("expected non-nil function hooks")
+	}
+	if d.Stdout == nil || d.Stderr == nil {
+		t.Fatal("expected non-nil io writers")
+	}
+	if len(d.TempDirs) == 0 {
+		t.Fatal("expected non-empty TempDirs")
+	}
+}
