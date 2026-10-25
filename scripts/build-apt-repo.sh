@@ -32,9 +32,18 @@ for tag in "$@"; do
   for arch in "${archs[@]}"; do
     mkdir -p "pool/main/$arch"
     # Release assets are named term-achievements_<version>_linux_<arch>.deb.
+    copied=0
     for deb in "$tmp"/*_linux_"$arch".deb; do
-      [ -e "$deb" ] && cp "$deb" "pool/main/$arch/"
+      if [ -e "$deb" ]; then
+        cp "$deb" "pool/main/$arch/"
+        copied=$((copied + 1))
+      fi
     done
+    if [ "$copied" -eq 0 ]; then
+      echo "error: no .deb packages found in release $tag for arch $arch" >&2
+      rm -r "$tmp"
+      exit 1
+    fi
   done
   rm -r "$tmp"
 done
