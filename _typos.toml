@@ -1,0 +1,16 @@
+# typos config: https://github.com/crate-ci/typos
+[files]
+extend-exclude = [
+  "*.{gif,png,jpg,jpeg,webp,ico,svg,pdf,woff,woff2,ttf}",
+]
+
+[default.extend-words]
+# Deliberate mistypes of common commands: the achievements engine detects them
+# (see docs/SPEC.md and internal/ach), so they appear in tests, docs and code.
+"gti" = "gti"
+"claer" = "claer"
+"clera" = "clera"
+"mkae" = "mkae"
+"amke" = "amke"
+"pyhton" = "pyhton"
+"pytohn" = "pytohn"
