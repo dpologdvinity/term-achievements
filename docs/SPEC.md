@@ -144,7 +144,7 @@ Same rules as a small key-value file:
 - Read-modify-write holds `syscall.Flock(LOCK_EX)` on `stats.lock`. `record` tries `LOCK_NB` every 500 µs for at most **5 ms**; on timeout it drops this one event and exits 0 silently. `list` and `wrapped` take a shared lock (`LOCK_SH`) with a 2 s budget, then exit 1 with `term-achievements: another term-achievements is busy; try again`.
 - Save is atomic (`stats.json.tmp-<pid>` then `os.Rename`).
 - Missing file: empty stats (all maps empty, Version 1).
-- Unparseable JSON: rename to `stats.json.corrupt-<unix seconds>` and start empty. `list`/`wrapped` print `term-achievements: stats file was unreadable; moved it to <path> and started fresh` to stderr (exit 0). `record` stays silent.
+- Unparsable JSON: rename to `stats.json.corrupt-<unix seconds>` and start empty. `list`/`wrapped` print `term-achievements: stats file was unreadable; moved it to <path> and started fresh` to stderr (exit 0). `record` stays silent.
 - `version` > 1: `record` does nothing; `list`/`wrapped` exit 1 with `term-achievements: stats were written by a newer term-achievements; please upgrade`.
 
 ### 5.4 Privacy rules (tested)

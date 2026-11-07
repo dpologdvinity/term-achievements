@@ -74,7 +74,7 @@ func TestLoadMissingAndNullMaps(t *testing.T) {
 	}
 }
 
-// TestLoadCorrupt checks that an unparseable file is moved aside and empty stats are returned.
+// TestLoadCorrupt checks that an unparsable file is moved aside and empty stats are returned.
 func TestLoadCorrupt(t *testing.T) {
 	dir := t.TempDir()
 	writeStats(t, dir, `{"counters":`)
