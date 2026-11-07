@@ -56,7 +56,10 @@ jobs:
       - name: Build the repository
         env:
           TAGS: ${{ inputs.tags }} # via env, never interpolated into the script text
-        run: src/scripts/build-apt-repo.sh site "$KEY_ID" $TAGS
+        run: |
+          # Split the space-separated tag list into an array (avoids unquoted expansion).
+          read -ra tags <<< "$TAGS"
+          src/scripts/build-apt-repo.sh site "$KEY_ID" "${tags[@]}"
       - name: Commit and push
         working-directory: site
         env:
