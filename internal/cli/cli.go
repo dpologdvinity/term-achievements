@@ -96,14 +96,15 @@ func Run(args []string, d Deps) int {
 	return 0
 }
 
-// withStats loads the stats under a shared lock and passes them to show.
-// A corrupt file is moved aside, announced once, and replaced by a fresh one.
+// withStats loads the stats under the exclusive lock and passes them to show. The lock is
+// exclusive because a corrupt file is moved aside and replaced by a fresh one here. The move
+// is announced once, whether it happened now or in an earlier, silent record.
 func withStats(d Deps, show func(*stats.Stats)) int {
 	dir, err := store.Dir(d.Getenv)
 	if err != nil {
 		return fail(d, 1, "%v", err)
 	}
-	unlock, err := store.Lock(dir, true, 2*time.Second)
+	unlock, err := store.Lock(dir, false, 2*time.Second)
 	if err != nil {
 		return fail(d, 1, "%v", err)
 	}
@@ -113,7 +114,11 @@ func withStats(d Deps, show func(*stats.Stats)) int {
 		return fail(d, 1, "%v", err)
 	}
 	if moved != "" {
-		fmt.Fprintf(d.Stderr, "term-achievements: stats file was unreadable; moved it to %s and started fresh\n", moved)
+		s.Recovered = moved
+	}
+	if s.Recovered != "" {
+		fmt.Fprintf(d.Stderr, "term-achievements: stats file was unreadable; moved it to %s and started fresh\n", s.Recovered)
+		s.Recovered = ""
 		if err := store.Save(dir, s); err != nil {
 			return fail(d, 1, "%v", err)
 		}

@@ -23,6 +23,8 @@ type Stats struct {
 	FailStreak int64                `json:"fail_streak"`
 	Unlocked   map[string]time.Time `json:"unlocked"`
 	Years      map[string]*Year     `json:"years"`
+	// Recovered is the path a corrupt stats file was moved to, not yet reported to the user.
+	Recovered string `json:"recovered,omitempty"`
 }
 
 // Year holds the aggregates behind `wrapped`.

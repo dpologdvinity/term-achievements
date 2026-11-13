@@ -90,6 +90,28 @@ func TestListCorruptWarns(t *testing.T) {
 	}
 }
 
+// TestRecordThenListWarnsOnce checks that a corrupt file recovered by the silent record
+// is still reported once, by the next list or wrapped, and that the recorded counter survives.
+func TestRecordThenListWarnsOnce(t *testing.T) {
+	d, out, errb := testDeps(t)
+	writeStats(t, d.Getenv("TERM_ACHIEVEMENTS_HOME"), "{bad")
+	rec(d, "0", "ls")
+	if errb.Len() != 0 || !strings.Contains(out.String(), "First Steps") {
+		t.Fatalf("%q %q", out, errb)
+	}
+	out.Reset()
+	if Run([]string{"list"}, d) != 0 || !strings.Contains(errb.String(), "moved it to ") || !strings.Contains(errb.String(), "stats.json.corrupt-") {
+		t.Fatal(errb)
+	}
+	if !strings.Contains(out.String(), "✓ First Steps") {
+		t.Fatal(out)
+	}
+	errb.Reset()
+	if Run([]string{"wrapped"}, d) != 0 || Run([]string{"list"}, d) != 0 || errb.Len() != 0 {
+		t.Fatal("warns only once:", errb)
+	}
+}
+
 // TestListNewerAndBusy checks that list refuses stats written by a newer version.
 func TestListNewerAndBusy(t *testing.T) {
 	d, _, errb := testDeps(t)

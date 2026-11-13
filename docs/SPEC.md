@@ -124,6 +124,7 @@ type Stats struct {
     FailStreak int64                `json:"fail_streak"` // consecutive failures
     Unlocked   map[string]time.Time `json:"unlocked"`    // achievement ID -> unlock time
     Years      map[string]*Year     `json:"years"`       // "2026" -> aggregates
+    Recovered  string               `json:"recovered,omitempty"` // corrupt-file backup path not yet reported (§5.3)
 }
 
 type Year struct {
@@ -141,10 +142,10 @@ type Year struct {
 
 ### 5.3 Load, save, lock
 Same rules as a small key-value file:
-- Read-modify-write holds `syscall.Flock(LOCK_EX)` on `stats.lock`. `record` tries `LOCK_NB` every 500 µs for at most **5 ms**; on timeout it drops this one event and exits 0 silently. `list` and `wrapped` take a shared lock (`LOCK_SH`) with a 2 s budget, then exit 1 with `term-achievements: another term-achievements is busy; try again`.
-- Save is atomic (`stats.json.tmp-<pid>` then `os.Rename`).
+- Read-modify-write holds `syscall.Flock(LOCK_EX)` on `stats.lock`. `record` tries `LOCK_NB` every 500 µs for at most **5 ms**; on timeout it drops this one event and exits 0 silently. `list` and `wrapped` also take `LOCK_EX` (they may move a corrupt file aside and save), with a 2 s budget, then exit 1 with `term-achievements: another term-achievements is busy; try again`.
+- Save is atomic (`stats.json.tmp-<pid>-<unix nanoseconds>` then `os.Rename`).
 - Missing file: empty stats (all maps empty, Version 1).
-- Unparsable JSON: rename to `stats.json.corrupt-<unix seconds>` and start empty. `list`/`wrapped` print `term-achievements: stats file was unreadable; moved it to <path> and started fresh` to stderr (exit 0). `record` stays silent.
+- Unparsable JSON: rename to `stats.json.corrupt-<unix seconds>` and start empty. `list`/`wrapped` print `term-achievements: stats file was unreadable; moved it to <path> and started fresh` to stderr (exit 0). `record` stays silent but stores the backup path in `recovered`; the next `list`/`wrapped` prints the same warning once and clears it.
 - `version` > 1: `record` does nothing; `list`/`wrapped` exit 1 with `term-achievements: stats were written by a newer term-achievements; please upgrade`.
 
 ### 5.4 Privacy rules (tested)

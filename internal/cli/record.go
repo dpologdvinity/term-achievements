@@ -78,9 +78,12 @@ func runRecord(args []string, d Deps) (code int) {
 		return 0
 	}
 	defer unlock()
-	s, _, err := store.Load(dir, now)
+	s, moved, err := store.Load(dir, now)
 	if err != nil {
 		return 0
+	}
+	if moved != "" {
+		s.Recovered = moved // record stays silent; the next list or wrapped reports it
 	}
 	stats.Apply(s, e)
 	unlocked := ach.Evaluate(s, now)
