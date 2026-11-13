@@ -32,7 +32,7 @@ This document explains how term-achievements is built and why. For usage, see
      └─ render.Toasts(unlocked)          print 🏆 lines to stdout
 
  term-achievements list | wrapped
-     └─ store.Lock (shared) → store.Load → render.List / render.Wrapped
+     └─ store.Lock (exclusive, 2 s) → store.Load → render.List / render.Wrapped
 ```
 
 ## Packages
@@ -80,14 +80,17 @@ directory (`$TERM_ACHIEVEMENTS_HOME`, else `$XDG_STATE_HOME/term-achievements`, 
 - **Writers** (`record`) take an exclusive `flock`, retrying without blocking every
   500 µs for at most 5 ms. If another shell holds the lock, the event is dropped. Losing
   one event is better than delaying a prompt.
-- **Readers** (`list`, `wrapped`) take a shared lock with a 2 s budget and report
-  "busy" if they cannot get it.
-- **Saves** write `stats.json.tmp-<pid>` and `rename` it over `stats.json`, so a reader
+- **Readers** (`list`, `wrapped`) also take the exclusive lock, because they may repair
+  a corrupt file. They hold it only to load, render and print, with a 2 s budget, and
+  report "busy" if they cannot get it.
+- **Saves** write `stats.json.tmp-<pid>-<nanoseconds>` and `rename` it over `stats.json`, so a reader
   never sees a half-written file. The file is deliberately *not* `fsync`ed: a sync
   measured about 30 ms on some disks, which would break the 10 ms budget. The cost is
   that a power loss during a save can reset the stats.
 - **Corrupt files** are moved to `stats.json.corrupt-<unix time>` and the program starts
-  empty. `record` stays silent about this; `list` and `wrapped` print one warning.
+  empty. `record` usually finds them first, since it runs before every prompt. It stays
+  silent but saves the backup path in `stats.json` (`recovered`). The next `list` or
+  `wrapped` prints the warning once and clears the field.
 - **Newer versions**: a file with `version` greater than 1 is never overwritten. `record`
   does nothing and `list` asks the user to upgrade.
 
@@ -122,8 +125,10 @@ lock, full disk) into a silent exit 0. A broken tool must not break the user's p
   state directory contains them.
 - **Speed.** `TestRecordBudget` (median of 20 in-process runs under 10 ms) and
   `BenchmarkRecord`. Process start-up of the binary is not included.
-- **CI** (`.github/workflows/ci.yml`) runs gofmt, `go vet` and `go test -race` on Linux
-  and macOS, `govulncheck`, and a GoReleaser snapshot build.
+- **CI** (`.github/workflows/ci.yml`) verifies `go.mod`/`go.sum`, then runs gofmt,
+  `go vet` and golangci-lint; `go test -race` on Linux and macOS with an 85% total
+  coverage gate; `govulncheck`; cross-compiles for linux and darwin on amd64 and arm64;
+  and a GoReleaser snapshot build.
 
 ## Extending
 
@@ -140,4 +145,7 @@ lock, full disk) into a silent exit 0. A broken tool must not break the user's p
 
 Pushing a tag like `v0.1.0` runs `.github/workflows/release.yml`, which uses GoReleaser
 (`.goreleaser.yaml`) to build static (`CGO_ENABLED=0`) binaries for linux and darwin on
-amd64 and arm64, and publishes archives and `checksums.txt` to the GitHub release.
+amd64 and arm64. It runs the race tests first. It publishes archives, `.deb` and `.rpm`
+packages and `checksums.txt` to the GitHub release, and pushes a Homebrew formula to
+`dpologdvinity/homebrew-tap`. Then `.github/workflows/apt-repo.yml` adds the `.deb`
+files to the signed apt repository on the `gh-pages` branch (GitHub Pages).
